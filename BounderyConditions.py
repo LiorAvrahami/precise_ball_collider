@@ -19,8 +19,10 @@ class BounderyConditions(abc.ABC):
         pass
 
     @staticmethod
-    def _calc_collision_time_with_wall_1d(ball_x,wall_x,ball_vel_x,ball_radius):
-        ret = (wall_x-ball_x-ball_radius)/ball_vel_x
+    def _calc_collision_time_with_wall_1d(ball_edge_x, wall_x, ball_vel_x):
+        if ball_vel_x == 0:
+            return np.inf
+        ret = (wall_x - ball_edge_x) / ball_vel_x
         return ret if ret > 0 else np.inf
 
 class RectangleBoundery_2D(BounderyConditions):
@@ -44,10 +46,10 @@ class RectangleBoundery_2D(BounderyConditions):
         """
         :return: a tuple: (collision time, index of colliding wall) the tuple's contents should be passed in this order to "handle_wall_collision"
         """
-        ret_1 = self._calc_collision_time_with_wall_1d(ball.location[0],self.wall_x_0,ball.velocity[0],ball.radius) , self.wall_x_0_index
-        ret_2 = self._calc_collision_time_with_wall_1d(ball.location[0],self.wall_x_1,ball.velocity[0],ball.radius) , self.wall_x_1_index
-        ret_3 = self._calc_collision_time_with_wall_1d(ball.location[1],self.wall_y_0,ball.velocity[1],ball.radius) , self.wall_y_0_index
-        ret_4 = self._calc_collision_time_with_wall_1d(ball.location[1],self.wall_y_1,ball.velocity[1],ball.radius) , self.wall_y_1_index
+        ret_1 = self._calc_collision_time_with_wall_1d(ball.location[0] - ball.radius,self.wall_x_0,ball.velocity[0]) , self.wall_x_0_index
+        ret_2 = self._calc_collision_time_with_wall_1d(ball.location[0] + ball.radius,self.wall_x_1,ball.velocity[0]) , self.wall_x_1_index
+        ret_3 = self._calc_collision_time_with_wall_1d(ball.location[1] - ball.radius,self.wall_y_0,ball.velocity[1]) , self.wall_y_0_index
+        ret_4 = self._calc_collision_time_with_wall_1d(ball.location[1] + ball.radius,self.wall_y_1,ball.velocity[1]) , self.wall_y_1_index
         return min(ret_1,ret_2,ret_3,ret_4)
 
 class CyclicBounderyConditions_2D(RectangleBoundery_2D):
@@ -63,7 +65,6 @@ class CyclicBounderyConditions_2D(RectangleBoundery_2D):
             ball.location[0] = self.wall_y_0
 
 class BounceBounderyConditions_2D(RectangleBoundery_2D):
-    #TODO FIX BUG: balls need to collide with the part of this ball that passed throu the boundery (possible fix is to creat a new ball at the mirror position and remove current ball when it completly exits bounds)
     def handle_wall_collision(self, ball: Ball, wall_index: int):
         if wall_index == self.wall_x_0_index or wall_index == self.wall_x_1_index:
             ball.velocity = ball.velocity*[-1,1]

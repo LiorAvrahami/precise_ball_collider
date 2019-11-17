@@ -12,14 +12,13 @@ def calc_collision_time_between_balls(bl1:Ball, bl2:Ball):
     R = bl1.radius + bl2.radius
     r = bl1.location - bl2.location
     impact_param = np.dot(v,v)*R**2-np.cross(v,r)**2
-    if impact_param >= 0:
-        impact_time = (-np.dot(v,r)-impact_param**0.5)/(np.dot(v,v))
+    if impact_param > 0:
+        impact_time = (-np.dot(v, r) - impact_param ** 0.5) / (np.dot(v,v))
         if impact_time < 0:
-            impact_time = (-np.dot(v, r) + 2 * impact_param ** 0.5) / (2 * np.dot(v, v))
-            if impact_time < 0:
-                impact_time = None
+            impact_time = np.inf
+
     else:
-        impact_time = None
+        impact_time = np.inf
     return impact_time
 
 
@@ -47,7 +46,7 @@ def print_balls(ball_arr,time):
 
 time = 0
 bl1 = Ball_2D([0.0,0.0],[1.0,0.0],0.5)
-bl2 = Ball_2D([0.0,-0.8],[0.0,1.0],0.2)
+bl2 = Ball_2D([-0.8,0],[0.5,0],0.2)
 boundery = BounceBounderyConditions_2D()
 balls_arr = [bl1,bl2]
 for i in range(100):# num of timesteps
@@ -69,7 +68,7 @@ for i in range(100):# num of timesteps
 
     # next interupt is the one that happens firrst
     time_step_till_next_interupt, interupt_handler_function, handler_paramiters  = min(next_possible_interupts)
-    if time_step_till_next_interupt > 0.05:
+    if time_step_till_next_interupt > 0.06:
         time_step_till_next_interupt, interupt_handler_function, handler_paramiters = (0.05,None,None)
     # propagate balls
     for ball in balls_arr:
