@@ -1,0 +1,37 @@
+
+    $$ Plasticity:
+for every ball there will be a field called elasticity. this field comes up in the calculation of the final energy in the CM reference after collision, as folows:
+Efin_cm = E_b1_cm*el_b1 + E_b2_cm*el_b2 ; where el_b(i) is the elasticity of ball i, E_b(i)_cm is the kinetic energy of ball i before the collision, in the CM referance frame.
+elasticity can take the value from 1 to -inf, where the folowing rule applies for negative elacticity (if Efin_cm < 0 than Efin_cm = 0).
+an other note is that this model is not too acurate when compared to the real world, the streangth of sticky bonds aren't really proportional to the energy of collition, whilst it is quite accurate to say that for posotive elacticity the model written here is quite accurate.
+
+brief theoretical explanation or walkthrough
+when elasticity = 1, the ball is completely elastic, thus on collision it stores kinetic energy and releases it with no loss.
+when elasticity = 0.5, the ball is half elastic, thus on collisions it stores kinetic energy and releases half of it as kinetic and half of it is dissipated as heat (heat is not modled).
+when elasticity = 0.0, the ball is plastic, like a sack of flower, that means it resists change of form, but has no aspiration to return to it's original form after being distorted,
+    thus on collision it dosn't stores any kinetic energy.
+when elasticity = -1.0, the ball is plastic and sticky, like plasticine, that means that in addition to the ball being plastic, it also has a tendency to stick to whatever it collided with, thus in order to separate after collision,
+    the other ball must use up some of it's own kinetic energy in order to break the sticky bonds between the balls.
+    keep in mid that the said "bonds" between two balls do not continue to exist after the said collision calculation finishes. thus if two balls collide and don't have enough energy to separate,
+    they will remain stuck together until an other ball hits one of them, in which case the original bonds between the old balls that collided will not be taken in to account.
+when elasticity = -inf, all collisions with ball are plastic collisions
+-----
+it is important to understand that the elasticity of one ball is just half the story. in a collision between a heavy ball and a light ball,
+    the final velocity is barely dependent on the elasticity of the heavy ball(because it stores vary little potential energy in the CM reference frame and elasticity is the property of a ball)
+-----
+
+    $$ Cyclic Boundary:
+with cyclic boundaries there is a problem. lets say we have a 1d simulation with a 10 wide cyclical boundery and with two balls of radius 1, with the following features:
+b1_x = 0.3 b1_v = 0
+b2_x = 9.5 b2_v = 1
+
+this rofly looks like this : [211---...---2]
+current solution: in each ball, the location is replaced with an array of locations, and uppon touching bounds, the position of the "Mirrored" ball is added to the array of locations.
+    every iteration, when the collision time with wall is calculated, ball locations which are completly out of bounds are removed.
+
+    $$ Boundery Composition (boundery multiplication):
+it should be possible to creat a general N dimentional boundery by merging lower dimentional bounderyes in the order of compasition, examples:
+2d_cyclical = 1d_cyclical*1d_cyclical
+2d_(x-cyclical,y-bouncy) = 1d_cyclical*1d_bouncy
+4d_bouncy = 1d_bouncy*1d_bouncy*1d_bouncy*1d_bouncy
+4d_(y-bouncy_with_(elasticity = 0.5),x-cyclical,z-cyclical,4th_axis-bouncy) = 1d_bouncy_with_(elasticity = 0.5) * 1d_cyclical * 1d_cyclical * 1d_bouncy

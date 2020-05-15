@@ -1,0 +1,2 @@
+class HultCondition:
+    pass
