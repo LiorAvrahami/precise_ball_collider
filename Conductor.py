@@ -52,8 +52,7 @@ class Conductor_That_WritesToFile(Conductor):
     def run_simulation(self):
         self.log_that_run_started()
         while not self.simulation_module.was_halt_condition_met():
-            system_states_to_print = self.simulation_module.calculate_next_ball_dynamics(
-                simulation_steps_timeout=self.num_of_steps_betwean_file_writings)
+            system_states_to_print = self.simulation_module.calculate_next_ball_dynamics(simulation_steps_timeout=self.num_of_steps_betwean_file_writings)[0]
             add_states_to_files(system_states_to_print, self.dataoutput_path, self.start_of_output_file_names)
         self.log_that_run_ended()
 
@@ -85,10 +84,11 @@ class Conductor_That_PrintsToScreen(Conductor):
         self.b_is_first_frame = True
 
     def get_frames_generator(self) -> Generator[List[FrameUpdate],None,None]:
+        # Todo: improve function readability
         while True:
             self.frame_start_time = time()
             if self.animation_time > self.simulation_module.time:
-                (new_states, num_of_new_states) = self.simulation_module.calculate_next_ball_dynamics(simulation_time_timeout=self.animation_time + 0.1)
+                new_states, num_of_new_states = self.simulation_module.calculate_next_ball_dynamics(simulation_time_timeout=self.animation_time + 0.1)
                 self.new_system_states.extend(new_states)
                 self.log_txt("emergancy calculation: calculated next {} states in {}".format(num_of_new_states, time() - self.frame_start_time))
             self.state_drawer.add_system_states_to_interpretation(self.new_system_states)
@@ -114,7 +114,7 @@ class Conductor_That_PrintsToScreen(Conductor):
 
         calc_start_time = time()
         self.log_txt("calculating the first few collisions")
-        (new_states, num_of_new_states) = self.simulation_module.calculate_next_ball_dynamics(simulation_time_timeout=self.animation_time + self.time_calculation_is_ahead_of_animation)
+        new_states, num_of_new_states = self.simulation_module.calculate_next_ball_dynamics(simulation_time_timeout=self.animation_time + self.time_calculation_is_ahead_of_animation)
         self.new_system_states.extend(new_states)
         self.log_txt("initial calculation: calculated first {} states in {}".format(num_of_new_states, time() - calc_start_time))
         self.state_drawer.add_system_states_to_interpretation(self.new_system_states)
