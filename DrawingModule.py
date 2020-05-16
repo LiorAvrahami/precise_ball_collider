@@ -8,6 +8,8 @@ from Ball import Ball
 from SimulationModule import SimulationModule
 from matplotlib import animation
 
+FrameUpdate = List[plt.Artist]
+
 def print_balls(ball_arr,sim_time,end_of_cycle_time = None):
     ax = plt.subplots()[1]
     ax.clear()

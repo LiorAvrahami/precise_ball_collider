@@ -2,7 +2,7 @@ from SimulationModule import SimulationModule
 import DrawingModule
 from Ball import Ball
 from BounderyConditions import SlipperyBounceBounderyConditions_2D,CyclicBounderyConditions_2D
-from Conductor import Conductor_That_PrintsToScreen_OLD,Conductor_That_PrintsToScreen
+from Conductor import Conductor_That_PrintsToScreen
 import numpy as np
 
 boundery = SlipperyBounceBounderyConditions_2D()

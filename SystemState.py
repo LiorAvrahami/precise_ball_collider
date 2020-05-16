@@ -42,18 +42,17 @@ class SystemState:
                 collider2 = "wall: " + str(wall_key)
                 approximate_location = b1.location
             ret_str = "interaction between " + collider1 + " and " + collider2 + ". at approximate coordinates: " + str(approximate_location)
+        else:
+            raise NotImplementedError("unrecognized collision type, please implement function - get_collision_description in class SystemState")
         return ret_str
-
-
-        raise NotImplementedError("unrecognized collision type, please implement function - get_collision_description in class SystemState")
 
     @staticmethod
     def generate_from_balls_array(time:float, current_objects_in_collision, balls:List[Ball]):
-        system_state = SystemState()
-        system_state.time = time
-        system_state.current_objects_in_collision = current_objects_in_collision
-        system_state.balls_location = np.array([ball.location for ball in balls])
-        system_state.balls_velocity = np.array([ball.velocity for ball in balls])
-        system_state.balls_angle = np.array([ball.angle for ball in balls])
-        system_state.balls_angular_velocity = np.array([ball.angular_vel for ball in balls])
-        return system_state
+        self = SystemState()
+        self.time = time
+        self.current_objects_in_collision = current_objects_in_collision
+        self.balls_location = np.array([ball.location for ball in balls])
+        self.balls_velocity = np.array([ball.velocity for ball in balls])
+        self.balls_angle = np.array([ball.angle for ball in balls])
+        self.balls_angular_velocity = np.array([ball.angular_vel for ball in balls])
+        return self
