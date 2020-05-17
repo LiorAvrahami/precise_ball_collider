@@ -90,7 +90,14 @@ class StateDrawer():
             plt.pause(0.000001)
             self.write_to_log("print_ended")
 
-    def start_animation(self,update_func):
+    def update_animation(self,frame_data):
+        new_system_states, time_to_print = frame_data
+        self.add_system_states_to_interpretation(new_system_states)
+        self.handle_clearing_of_past_system_states(time_to_print)
+        self.draw_state_at_time(time_to_print, None, b_plot=False)
+        return self.all_artist_objects
+
+    def start_animation(self,frames_generator):
         fig = self.ax.figure
-        anim = animation.FuncAnimation(fig, update_func, interval=0, blit=True)
+        anim = animation.FuncAnimation(fig, self.update_animation,frames=frames_generator, interval=0, blit=True)
         plt.show()
