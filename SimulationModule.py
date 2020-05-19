@@ -96,7 +96,7 @@ class SimulationModule(object):
             # handle couse of interupt (collition physics)
             if interupt_handler_function != None:
                 interupt_handler_function(*handler_paramiters)
-            out_simulationstates_buffer.append(SystemState.generate_from_balls_array(self.time, handler_paramiters, self.balls_arr))
+            out_simulationstates_buffer.append(SystemState.generate_from_balls_array(self.time,self.total_num_of_steps, handler_paramiters, self.balls_arr))
 
         return out_simulationstates_buffer, len(out_simulationstates_buffer)
 

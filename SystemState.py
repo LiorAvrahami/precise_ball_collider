@@ -9,6 +9,7 @@ class SystemState:
     balls_velocity: np.ndarray
     balls_angle: np.ndarray
     balls_angular_velocity: np.ndarray
+    total_num_of_steps:int
 
     def get_collision_description(self) -> str:
         ret_str = "not implemented"
@@ -47,7 +48,7 @@ class SystemState:
         return ret_str
 
     @staticmethod
-    def generate_from_balls_array(time:float, current_objects_in_collision, balls:List[Ball]):
+    def generate_from_balls_array(time:float,total_num_of_steps:int, current_objects_in_collision, balls:List[Ball]):
         self = SystemState()
         self.time = time
         self.current_objects_in_collision = current_objects_in_collision
@@ -55,4 +56,5 @@ class SystemState:
         self.balls_velocity = np.array([ball.velocity for ball in balls])
         self.balls_angle = np.array([ball.angle for ball in balls])
         self.balls_angular_velocity = np.array([ball.angular_vel for ball in balls])
+        self.total_num_of_steps = total_num_of_steps
         return self
