@@ -3,14 +3,49 @@ from SimulationModule import SimulationModule
 import DrawingModule
 from Ball import Ball
 from BounderyConditions import SlipperyBounceBounderyConditions_2D,CyclicBounderyConditions_2D,RectangleBoundery_2D
-from Conductor import ConductorWithNoOutput,Conductor_That_PrintsToScreen_Fast
-import numpy as np
+from Conductor import ConductorWithNoOutput,Conductor_That_PrintsToScreen
+from typing import Union,Tuple
+import HaltConditions
 
 class Test(TestCase):
-    def assert_ball_is_in_bounds(self,ball,bounds:RectangleBoundery_2D):
+    def assert_ball_is_in_bounds(self,ball,bounds:Union[RectangleBoundery_2D,Tuple]):
         x,y = ball.location
-        if x < bounds.wall_x_0 or x > bounds.wall_x_1 or y < bounds.wall_y_0 or y > bounds.wall_y_1:
-            self.fail("ball escaped bounds: ball location = {},boundery = {}".format(ball.location,bounds))
+        if type(bounds) is RectangleBoundery_2D:
+            bx0, bx1, by0, by1 = bounds.wall_x_0, bounds.wall_x_1, bounds.wall_y_0, bounds.wall_y_1
+        else:
+            bx0, bx1, by0, by1 = bounds
+        if x < bx0 or x > bx1 or y < by0 or y > by1:
+            self.fail("ball not in bounds: ball location = {},boundery = {}".format(ball.location,bounds))
+
+    def assert_ball_is_in_position(self,ball,pos,error=0.0001):
+        bounds = (pos[0]-error,pos[0]+error,pos[1]-error,pos[1]+error)
+        self.assert_ball_is_in_bounds(ball,bounds)
+
+    def test_collide_with_wall(self):
+        boundery = SlipperyBounceBounderyConditions_2D()
+        ball1 = Ball((0,0), (1,0), 0.1)
+        simulation = SimulationModule(boundery_conditions=boundery, balls_arr=[ball1],halt_condition=HaltConditions.HaltAtGivenSimulationTime(1.8))
+        conductor = ConductorWithNoOutput(simulation_module=simulation)
+        conductor.run_simulation()
+        self.assert_ball_is_in_position(ball1,(0,0))
+
+    def test_multiple_halt_conditions_1(self):
+        boundery = SlipperyBounceBounderyConditions_2D()
+        ball1 = Ball((0,0), (1,0), 0.1)
+        halt_condition = HaltConditions.HaltAtGivenSimulationTime(0.4) | HaltConditions.HaltAtBallExitsRectangle((-1,-1),(0.5,1))
+        simulation = SimulationModule(boundery_conditions=boundery, balls_arr=[ball1],halt_condition=halt_condition)
+        conductor = ConductorWithNoOutput(simulation_module=simulation)
+        conductor.run_simulation()
+        self.assert_ball_is_in_position(ball1,(0.4,0))
+
+    def test_multiple_halt_conditions_2(self):
+        boundery = SlipperyBounceBounderyConditions_2D()
+        ball1 = Ball((0,0), (1,0), 0.1)
+        halt_condition = HaltConditions.HaltAtGivenSimulationTime(0.4) | HaltConditions.HaltAtBallExitsRectangle((-1,-1),(0.3,1))
+        simulation = SimulationModule(boundery_conditions=boundery, balls_arr=[ball1],halt_condition=halt_condition)
+        conductor = ConductorWithNoOutput(simulation_module=simulation)
+        conductor.run_simulation()
+        self.assert_ball_is_in_position(ball1,(0.3,0))
 
     def test_multiple_instantaneous_collisions(self):
         boundery = SlipperyBounceBounderyConditions_2D()

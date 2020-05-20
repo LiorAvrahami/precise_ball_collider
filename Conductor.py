@@ -1,6 +1,6 @@
 import abc
 from SimulationModule import SimulationModule
-from HultCondition import HultCondition
+import HaltConditions
 from StatesToFileWritingModule import add_states_to_files, add_text_to_file
 from time import time,sleep
 from typing import List,Generator
@@ -56,14 +56,14 @@ class Conductor_That_WritesToFile(Conductor):
         self.log_that_run_ended()
 
 class ConductorWithNoOutput(Conductor):
-    simulation_time_timeout:float
-    def __init__(self, simulation_time_timeout, simulation_module: SimulationModule, log_file_fullname: str=None):
+    def __init__(self, simulation_module: SimulationModule, log_file_fullname: str=None, simulation_time_timeout=None):
         super().__init__(simulation_module=simulation_module, log_file_fullname=log_file_fullname)
-        self.simulation_time_timeout = simulation_time_timeout
+        if simulation_time_timeout is not None:
+            self.simulation_module.halt_condition = HaltConditions.HaltAtGivenSimulationTime(simulation_time_timeout)
 
     def run_simulation(self):
         self.log_that_run_started()
-        self.simulation_module.calculate_next_ball_dynamics(simulation_time_timeout=self.simulation_time_timeout)
+        self.simulation_module.calculate_next_ball_dynamics()
         self.log_that_run_ended()
 
 class Conductor_That_PrintsToScreen(Conductor):

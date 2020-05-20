@@ -17,8 +17,8 @@ class Ball(object):
     def __init__(self, location, velocity, radius, mass=1, angular_vel = None, color = None):
         self.id = Ball.id_of_next_ball
         Ball.id_of_next_ball += 1
-        self.location = location if location is np.ndarray else np.array(location)
-        self.velocity = velocity if velocity is np.ndarray else np.array(velocity)
+        self.location = location if location is np.ndarray else np.array(location,dtype=float)
+        self.velocity = velocity if velocity is np.ndarray else np.array(velocity,dtype=float)
         self.radius = radius
         self.mass = mass
         self.color = color
