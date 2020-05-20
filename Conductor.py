@@ -4,7 +4,7 @@ import HaltConditions
 from StatesToFileWritingModule import add_states_to_files, add_text_to_file
 from time import time,sleep
 from typing import List,Generator
-from DrawingModule import StateDrawer,FrameUpdate
+from DrawingModule import SimulationAnimator,FrameUpdate
 
 class Conductor(abc.ABC):
     simulation_module: SimulationModule
@@ -116,5 +116,5 @@ class Conductor_That_PrintsToScreen(Conductor):
         self.log_that_run_ended()
 
     def run_simulation(self):
-        self.state_drawer = StateDrawer(self.simulation_module,max_num_of_past_system_states = self.max_num_of_past_system_states,write_to_log = self.log_txt)
+        self.state_drawer = SimulationAnimator(self.simulation_module,max_num_of_past_system_states = self.max_num_of_past_system_states,write_to_log = self.log_txt)
         self.state_drawer.start_animation(frames_generator = self.get_frames_generator())

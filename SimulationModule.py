@@ -16,16 +16,27 @@ class SimulationModule(object):
     total_num_of_steps: int
     boundery: SlipperyBounceBounderyConditions_2D
     balls_arr: List[Ball]
-    halt_condition: HaltCondition
+    _halt_condition: HaltCondition
     simulation_propagation_generator: _SimulationPropagationGeneratorType  # creatd by _get_simulation_propagation_generator at initialisation
     b_end_of_simulation_reached:bool
 
-    def __init__(self, boundery_conditions, balls_arr,halt_condition=None):
-        self.boundery = boundery_conditions
+    @property
+    def halt_condition(self):
+        return self._halt_condition
+
+    @halt_condition.setter
+    def halt_condition(self,val):
+        self._halt_condition = val
+        self._halt_condition.add_new_system_state(SystemState.generate_from_simulation_module(self, None))
+        #Todo restart if b_end_of_simulation_reached
+
+
+    def __init__(self, balls_arr, boundery_conditions = None,halt_condition=None):
+        self.boundery = SlipperyBounceBounderyConditions_2D() if boundery_conditions is None else boundery_conditions
         self.balls_arr = balls_arr
         self.time = 0
         self.total_num_of_steps = 0
-        self.halt_condition = HaltConditions.NeverHalt() if halt_condition is None else halt_condition
+        self.halt_condition = HaltConditions.NeverHalt() if halt_condition is None else halt_condition # Must Come After Initialisation Of balls_arr,time,total_num_of_steps
         self.simulation_propagation_generator = self._get_simulation_propagation_generator()
         self.b_end_of_simulation_reached = False
         next(self.simulation_propagation_generator)
@@ -71,8 +82,6 @@ class SimulationModule(object):
             nonlocal b_should_pause_calculation,out_simulationstates_buffer
             b_should_pause_calculation = yield out_simulationstates_buffer, len(out_simulationstates_buffer) + self.get_calculation_progress(first_ball_index, second_ball_index)
             out_simulationstates_buffer = []
-
-        self.halt_condition.add_new_system_state(SystemState.generate_from_simulation_module(self,None))
 
         b_should_pause_calculation = yield
         while True:
@@ -125,3 +134,7 @@ class SimulationModule(object):
     def get_calculation_progress(self, first_ball_index, second_ball_index):
         num_of_balls = len(self.balls_arr)
         return first_ball_index / num_of_balls + (second_ball_index - first_ball_index) / ((num_of_balls - first_ball_index + 1) * num_of_balls)
+
+    def draw_current_situation(self):
+        SystemState.generate_from_simulation_module(self,None).draw_state()
+

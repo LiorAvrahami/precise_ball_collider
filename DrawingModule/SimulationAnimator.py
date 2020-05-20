@@ -2,29 +2,17 @@ import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 from SystemState import SystemState
 from time import time as get_current_real_time
-from typing import List, Tuple, Callable
+from typing import List, Tuple, Callable, TYPE_CHECKING
 import numpy as np
-from Ball import Ball
 from SimulationModule import SimulationModule
+
 from matplotlib import animation
 
 FrameUpdate = List[plt.Artist]
 
-def print_balls(ball_arr,sim_time,end_of_cycle_time = None):
-    ax = plt.subplots()[1]
-    ax.clear()
-    print("balls state at time",sim_time)
-    for ball in ball_arr:
-        print("location", ball.location, "vel", ball.velocity)
-        ax.add_artist(plt.Circle(ball.location,ball.radius))
-    ax.set_xlim((-1,1))
-    ax.set_ylim((-1, 1))
-    ax.set_aspect('equal')
-    if end_of_cycle_time is None:
-        end_of_cycle_time = get_current_real_time() + 0.001
-    plt.pause(end_of_cycle_time - get_current_real_time())
 
-class StateDrawer():
+
+class SimulationAnimator():
     balls_locations_for_interp_x: List[List[float]]
     balls_locations_for_interp_y: List[List[float]]
     times_for_interp: List[float]
@@ -52,7 +40,7 @@ class StateDrawer():
         self.ax.set_xlim(-1, 1)
         self.ax.set_ylim(-1, 1)
         self.ax.set_aspect('equal')
-        self.add_system_states_to_interpretation([SystemState.generate_from_balls_array(sim_module.time,None,sim_module.balls_arr)])
+        self.add_system_states_to_interpretation([SystemState.generate_from_balls_array(time=sim_module.time,total_num_of_steps=sim_module.total_num_of_steps,current_objects_in_collision=None,balls=sim_module.balls_arr)])
 
         self.time_text_artist = plt.text(0.02,0.98,"",bbox={'facecolor':(0.35,0.3,0.2), 'alpha':0.1,'pad':5},va="top",alpha=0.9,transform = self.ax.transAxes)
         self.ax.add_artist(self.time_text_artist)
