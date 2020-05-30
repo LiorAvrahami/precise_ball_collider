@@ -11,9 +11,13 @@ Functionality Includes:
 -----------------------
 - boundery conditions
 - general simulation hault conditions, the ability to change and continue run after simulation hault
+- arbitrary circle size, mass and color
 - inelastic colitions (work in progress)
 - rotational colitions (work in progress)
 - output realtime animation
 - input from file (work in progress)
 - output to file (work in progress)
 
+example images:
+-----------------------
+<img src="https://user-images.githubusercontent.com/57775835/83323707-3e608480-a269-11ea-8a97-6fc0c76703d6.PNG" width="300"><img src="https://user-images.githubusercontent.com/57775835/83323709-3f91b180-a269-11ea-8844-7dc0b4f7580f.PNG" width="300">
