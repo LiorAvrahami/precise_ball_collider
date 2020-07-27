@@ -2,6 +2,7 @@ import numpy as np
 from typing import List, Optional
 from Ball import Ball
 
+
 class SystemState:
     time: float
     current_objects_in_collision = None
@@ -10,12 +11,12 @@ class SystemState:
     balls_velocity: np.ndarray
     balls_angle: np.ndarray
     balls_angular_velocity: np.ndarray
-    balls_id:np.ndarray
-    total_num_of_steps:int
+    balls_id: np.ndarray
+    total_num_of_steps: int
 
-    def propagate_by(self,time):
+    def propagate_by(self, time):
         new = self.clone()
-        new.balls_location += new.balls_velocity*time
+        new.balls_location += new.balls_velocity * time
         new.time += time
         return new
 
@@ -57,7 +58,7 @@ class SystemState:
             if b2 is not None:
                 # two ball interaction
                 collider2 = "ball: " + str(b2.id)
-                approximate_location = (b1.location + b2.location)/2
+                approximate_location = (b1.location + b2.location) / 2
             elif wall_key is not None:
                 # ball and wall interaction
                 collider2 = "wall: " + str(wall_key)
@@ -68,7 +69,7 @@ class SystemState:
         return ret_str
 
     @staticmethod
-    def generate_from_balls_array(time:float,total_num_of_steps:int, current_objects_in_collision, balls:List[Ball]):
+    def generate_from_balls_array(time: float, total_num_of_steps: int, current_objects_in_collision, balls: List[Ball]):
         self = SystemState()
         self.time = time
         self.current_objects_in_collision = current_objects_in_collision
@@ -82,8 +83,8 @@ class SystemState:
         return self
 
     @staticmethod
-    def generate_from_simulation_module(simulation_module,current_objects_in_collision):
-        return SystemState.generate_from_balls_array(simulation_module.time,simulation_module.total_num_of_steps, current_objects_in_collision, simulation_module.balls_arr)
+    def generate_from_simulation_module(simulation_module, current_objects_in_collision):
+        return SystemState.generate_from_balls_array(simulation_module.time, simulation_module.total_num_of_steps, current_objects_in_collision, simulation_module.balls_arr)
 
     def draw_state(self):
         import DrawingModule

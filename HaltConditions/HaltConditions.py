@@ -1,4 +1,4 @@
-from .HaltConditionComposition import HaltCondition,Or_OfTwoHaltConditions
+from .HaltConditionComposition import HaltCondition, Or_OfTwoHaltConditions
 from SystemState import SystemState
 from typing import Tuple, Optional
 import numpy as np
@@ -67,17 +67,18 @@ class HaltAtGivenNumOfSteps(SingularHaLTCondition):
 
 class HaltAtBallExitsRectangle(Or_OfTwoHaltConditions):
     def __init__(self, p1, p2):
-        condx = HaltAtBallExits1DRegion(min(p1[0], p2[0]), max(p1[0], p2[0]),0)
-        condy = HaltAtBallExits1DRegion(min(p1[1], p2[1]), max(p1[1], p2[1]),1)
-        super().__init__(condx,condy)
+        condx = HaltAtBallExits1DRegion(min(p1[0], p2[0]), max(p1[0], p2[0]), 0)
+        condy = HaltAtBallExits1DRegion(min(p1[1], p2[1]), max(p1[1], p2[1]), 1)
+        super().__init__(condx, condy)
 
 
 class HaltAtBallExits1DRegion(SingularHaLTCondition):
-    min:float
-    max:float
-    coordinate_index:int
+    min: float
+    max: float
+    coordinate_index: int
 
-    def get_upcoming_collision_time(self,coor_vals,vel_vals):
+    def get_upcoming_collision_time(self, coor_vals, vel_vals):
+        # TODO Account for radii
         t_collide_with_max = (self.max - coor_vals) / vel_vals
         t_collide_with_min = (self.min - coor_vals) / vel_vals
 
@@ -94,7 +95,7 @@ class HaltAtBallExits1DRegion(SingularHaLTCondition):
 
     def __init__(self, min, max, coordinate_index):
         super().__init__()
-        self.min,self.max = min,max
+        self.min, self.max = min, max
         self.coordinate_index = coordinate_index
 
     def update_and_check(self, current_system_state: SystemState) -> Tuple[bool, Optional[SystemState]]:
@@ -102,8 +103,8 @@ class HaltAtBallExits1DRegion(SingularHaLTCondition):
         if np.any(coor_vals < self.min) or np.any(coor_vals > self.max):
             coor_vals = self.last_system_state.balls_location[:, self.coordinate_index]
             vel_vals = self.last_system_state.balls_velocity[:, self.coordinate_index]
-            collision_time = self.get_upcoming_collision_time(coor_vals,vel_vals)
+            collision_time = self.get_upcoming_collision_time(coor_vals, vel_vals)
             new_state = self.last_system_state.propagate_by(collision_time)
-            return True,new_state
+            return True, new_state
         self.add_new_system_state(current_system_state)
         return False, None

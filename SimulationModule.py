@@ -8,8 +8,8 @@ from SystemState import SystemState
 from HaltConditions import HaltCondition
 import HaltConditions
 
-class SimulationModule(object):
 
+class SimulationModule(object):
     _SimulationPropagationGeneratorType = Generator[Tuple[List[SystemState], float], Callable[[None], bool], Tuple[List[SystemState], float]]
 
     time: float
@@ -18,31 +18,30 @@ class SimulationModule(object):
     balls_arr: List[Ball]
     _halt_condition: HaltCondition
     simulation_propagation_generator: _SimulationPropagationGeneratorType  # creatd by _get_simulation_propagation_generator at initialisation
-    b_end_of_simulation_reached:bool
+    b_end_of_simulation_reached: bool
 
     @property
     def halt_condition(self):
         return self._halt_condition
 
     @halt_condition.setter
-    def halt_condition(self,val):
+    def halt_condition(self, val):
         self._halt_condition = val
         self._halt_condition.add_new_system_state(SystemState.generate_from_simulation_module(self, None))
-        #Todo restart if b_end_of_simulation_reached
+        if self.b_end_of_simulation_reached:
+            self.b_end_of_simulation_reached = False
+            self.simulation_propagation_generator = self.get_simulation_propagation_generator()
 
-
-    def __init__(self, balls_arr, boundery_conditions = None,halt_condition=None):
+    def __init__(self, balls_arr, boundery_conditions=None, halt_condition=None):
         self.boundery = SlipperyBounceBounderyConditions_2D() if boundery_conditions is None else boundery_conditions
         self.balls_arr = balls_arr
         self.time = 0
         self.total_num_of_steps = 0
-        self.halt_condition = HaltConditions.NeverHalt() if halt_condition is None else halt_condition # Must Come After Initialisation Of balls_arr,time,total_num_of_steps
-        self.simulation_propagation_generator = self._get_simulation_propagation_generator()
         self.b_end_of_simulation_reached = False
-        next(self.simulation_propagation_generator)
+        self.halt_condition = HaltConditions.NeverHalt() if halt_condition is None else halt_condition  # Must Come After Initialisation Of balls_arr,time,total_num_of_steps
+        self.simulation_propagation_generator = self.get_simulation_propagation_generator()
 
-
-    def update_from_system_state(self,system_state:SystemState):
+    def update_from_system_state(self, system_state: SystemState):
         self.time = system_state.time
         self.total_num_of_steps = system_state.total_num_of_steps
         for i, ball in enumerate(self.balls_arr):
@@ -69,6 +68,11 @@ class SimulationModule(object):
 
             return ret.value
 
+    def get_simulation_propagation_generator(self) -> _SimulationPropagationGeneratorType:
+        propagation_generator = self._get_simulation_propagation_generator()
+        next(propagation_generator)
+        return propagation_generator
+
     def _get_simulation_propagation_generator(self) -> _SimulationPropagationGeneratorType:
         """
         creates a generator that, when re-called, calculates the next simulation states until reaches timeout or the halt condition.
@@ -79,13 +83,13 @@ class SimulationModule(object):
         out_simulationstates_buffer = []
 
         def pause_and_yield(first_ball_index, second_ball_index):
-            nonlocal b_should_pause_calculation,out_simulationstates_buffer
+            nonlocal b_should_pause_calculation, out_simulationstates_buffer
             b_should_pause_calculation = yield out_simulationstates_buffer, len(out_simulationstates_buffer) + self.get_calculation_progress(first_ball_index, second_ball_index)
             out_simulationstates_buffer = []
 
         b_should_pause_calculation = yield
         while True:
-            while b_should_pause_calculation(): # check if should pause and yield before starting step, (helps keep calculation steps whole, and is essential for case where there is only one ball)
+            while b_should_pause_calculation():  # check if should pause and yield before starting step, (helps keep calculation steps whole, and is essential for case where there is only one ball)
                 yield from pause_and_yield(0, 0)
 
             next_possible_interupts = []
@@ -123,7 +127,7 @@ class SimulationModule(object):
             out_simulationstates_buffer.append(SystemState.generate_from_simulation_module(self, handler_paramiters))
 
             # check halt condition
-            b_halt_condition_met,final_system_state = self.halt_condition.update_and_check(out_simulationstates_buffer[-1])
+            b_halt_condition_met, final_system_state = self.halt_condition.update_and_check(out_simulationstates_buffer[-1])
             if b_halt_condition_met:
                 self.update_from_system_state(final_system_state)
                 out_simulationstates_buffer[-1] = final_system_state
@@ -136,5 +140,4 @@ class SimulationModule(object):
         return first_ball_index / num_of_balls + (second_ball_index - first_ball_index) / ((num_of_balls - first_ball_index + 1) * num_of_balls)
 
     def draw_current_situation(self):
-        SystemState.generate_from_simulation_module(self,None).draw_state()
-
+        SystemState.generate_from_simulation_module(self, None).draw_state()

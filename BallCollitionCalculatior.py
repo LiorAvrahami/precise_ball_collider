@@ -1,6 +1,7 @@
 from Ball import Ball
 import numpy as np
 
+
 def calc_collision_time_between_balls(bl1: 'Ball', bl2: 'Ball'):
     # math formula:
     # time = [-(v*r) +- sqrt{(vR)^2 - (vxr)}]/v^2
@@ -18,10 +19,11 @@ def calc_collision_time_between_balls(bl1: 'Ball', bl2: 'Ball'):
         impact_time = np.inf
     return impact_time
 
-def handle_ball_collision(bl1:Ball,bl2:Ball):
+
+def handle_ball_collision(bl1: Ball, bl2: Ball):
     v = bl1.velocity - bl2.velocity
     r = bl1.location - bl2.location
-    reduced_mass = 2*(bl2.mass)/(bl2.mass + bl1.mass)
-    velocity_geometry_factor = (np.dot(v,r)/np.dot(r,r))*r
+    reduced_mass = 2 * (bl2.mass) / (bl2.mass + bl1.mass)
+    velocity_geometry_factor = (np.dot(v, r) / np.dot(r, r)) * r
     bl1.velocity -= reduced_mass * velocity_geometry_factor
     bl2.velocity -= (reduced_mass - 2) * velocity_geometry_factor

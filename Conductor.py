@@ -2,23 +2,24 @@ import abc
 from SimulationModule import SimulationModule
 import HaltConditions
 from StatesToFileWritingModule import add_states_to_files, add_text_to_file
-from time import time,sleep
-from typing import List,Generator
-from DrawingModule import SimulationAnimator,FrameUpdate
+from time import time, sleep
+from typing import List, Generator
+from DrawingModule import SimulationAnimator, FrameUpdate
+
 
 class Conductor(abc.ABC):
     simulation_module: SimulationModule
     log_file_fullname: str
 
-    def __init__(self,simulation_module: SimulationModule,log_file_fullname: str = None):
+    def __init__(self, simulation_module: SimulationModule, log_file_fullname: str = None):
         self.simulation_module = simulation_module
         self.log_file_fullname = log_file_fullname
 
-    def log_txt(self,txt):
+    def log_txt(self, txt):
         if self.log_file_fullname is None:
             print(txt)
         else:
-            add_text_to_file(txt,self.log_file_fullname)
+            add_text_to_file(txt, self.log_file_fullname)
 
     def log_that_run_started(self):
         self.log_txt("run started")
@@ -26,27 +27,27 @@ class Conductor(abc.ABC):
     def log_that_run_ended(self):
         self.log_txt("run ended")
 
-    def log_that_wrote_to_files(self,file_short_names: List[str]):
+    def log_that_wrote_to_files(self, file_short_names: List[str]):
         self.log_txt("wrote to" + str(file_short_names))
 
     def log_that_Error_occured(self, error_object: Exception):
-        self.log_txt("error occured\\nerror type: " + str(type(error_object))+ "\\nerror messege" + str(error_object))
+        self.log_txt("error occured\\nerror type: " + str(type(error_object)) + "\\nerror messege" + str(error_object))
 
     @abc.abstractmethod
     def run_simulation(self):
         pass
+
 
 class Conductor_That_WritesToFile(Conductor):
     num_of_steps_betwean_file_writings: int
     dataoutput_path: str
     start_of_output_file_names: str
 
-    def __init__(self, simulation_module: SimulationModule, log_file_fullname: str, dataoutput_path: str, num_of_steps_betwean_file_writings: int, start_of_output_file_names:str = None):
+    def __init__(self, simulation_module: SimulationModule, log_file_fullname: str, dataoutput_path: str, num_of_steps_betwean_file_writings: int, start_of_output_file_names: str = None):
         super().__init__(simulation_module=simulation_module, log_file_fullname=log_file_fullname)
         self.dataoutput_path = dataoutput_path
         self.num_of_steps_betwean_file_writings = num_of_steps_betwean_file_writings
         self.start_of_output_file_names = start_of_output_file_names
-
 
     def run_simulation(self):
         self.log_that_run_started()
@@ -55,8 +56,9 @@ class Conductor_That_WritesToFile(Conductor):
             add_states_to_files(system_states_to_print, self.dataoutput_path, self.start_of_output_file_names)
         self.log_that_run_ended()
 
+
 class ConductorWithNoOutput(Conductor):
-    def __init__(self, simulation_module: SimulationModule, log_file_fullname: str=None, simulation_time_timeout=None):
+    def __init__(self, simulation_module: SimulationModule, log_file_fullname: str = None, simulation_time_timeout=None):
         super().__init__(simulation_module=simulation_module, log_file_fullname=log_file_fullname)
         if simulation_time_timeout is not None:
             self.simulation_module.halt_condition = HaltConditions.HaltAtGivenSimulationTime(simulation_time_timeout)
@@ -65,6 +67,7 @@ class ConductorWithNoOutput(Conductor):
         self.log_that_run_started()
         self.simulation_module.calculate_next_ball_dynamics()
         self.log_that_run_ended()
+
 
 class Conductor_That_PrintsToScreen(Conductor):
     time_calculation_is_ahead_of_animation: float
@@ -82,7 +85,7 @@ class Conductor_That_PrintsToScreen(Conductor):
         self.max_num_of_past_system_states = max_num_of_past_system_states
         self.b_is_first_frame = True
 
-    def get_frames_generator(self) -> Generator[List[FrameUpdate],None,None]:
+    def get_frames_generator(self) -> Generator[List[FrameUpdate], None, None]:
         # Todo: improve function readability
 
         self.log_that_run_started()
@@ -92,7 +95,7 @@ class Conductor_That_PrintsToScreen(Conductor):
         self.log_txt("calculating the first few collisions")
         new_system_states, num_of_new_states = self.simulation_module.calculate_next_ball_dynamics(simulation_time_timeout=self.animation_time + self.time_calculation_is_ahead_of_animation)
         self.log_txt("initial calculation: calculated first {} states in {}".format(num_of_new_states, time() - anim_start_time))
-        yield new_system_states,self.animation_time
+        yield new_system_states, self.animation_time
         new_system_states = []
 
         while not self.simulation_module.b_end_of_simulation_reached:
@@ -101,7 +104,7 @@ class Conductor_That_PrintsToScreen(Conductor):
                 new_states, num_of_new_states = self.simulation_module.calculate_next_ball_dynamics(simulation_time_timeout=self.animation_time + 0.1)
                 new_system_states.extend(new_states)
                 self.log_txt("emergancy calculation: calculated next {} states in {}".format(num_of_new_states, time() - self.frame_start_time))
-            yield new_system_states,self.animation_time
+            yield new_system_states, self.animation_time
             leftover_calculation_start_time = time()
             new_system_states, num_of_new_states = self.simulation_module.calculate_next_ball_dynamics(
                 simulation_time_timeout=self.animation_time + self.time_calculation_is_ahead_of_animation, user_time_timeout__sec=1 / self.target_fps - (time() - self.frame_start_time))
@@ -116,5 +119,5 @@ class Conductor_That_PrintsToScreen(Conductor):
         self.log_that_run_ended()
 
     def run_simulation(self):
-        self.state_drawer = SimulationAnimator(self.simulation_module,max_num_of_past_system_states = self.max_num_of_past_system_states,write_to_log = self.log_txt)
-        self.state_drawer.start_animation(frames_generator = self.get_frames_generator())
+        self.state_drawer = SimulationAnimator(self.simulation_module, max_num_of_past_system_states=self.max_num_of_past_system_states, write_to_log=self.log_txt)
+        self.state_drawer.start_animation(frames_generator=self.get_frames_generator())
