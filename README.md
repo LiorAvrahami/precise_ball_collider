@@ -1,4 +1,4 @@
-# Linier-Ball-Collitions-Simulation
+# Hard-Spheres-Collisions-Ray-Tracing-Simulation
 a simulative program to calculate the tragectory of a cluster of hard balls, in 2 or 3 dimentions.
 planned to be a physics demenstration program built for my own entertainment and practice.
 
