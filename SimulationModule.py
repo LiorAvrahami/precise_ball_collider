@@ -19,6 +19,7 @@ class SimulationModule(object):
     _halt_condition: HaltCondition
     simulation_propagation_generator: _SimulationPropagationGeneratorType  # creatd by _get_simulation_propagation_generator at initialisation
     b_end_of_simulation_reached: bool
+    _b_force_stop:bool
 
     @property
     def halt_condition(self):
@@ -40,6 +41,7 @@ class SimulationModule(object):
         self.b_end_of_simulation_reached = False
         self.halt_condition = HaltConditions.NeverHalt() if halt_condition is None else halt_condition  # Must Come After Initialisation Of balls_arr,time,total_num_of_steps
         self.simulation_propagation_generator = self.get_simulation_propagation_generator()
+        self._b_force_stop= False
 
     def update_from_system_state(self, system_state: SystemState):
         self.time = system_state.time
@@ -128,9 +130,11 @@ class SimulationModule(object):
 
             # check halt condition
             b_halt_condition_met, final_system_state = self.halt_condition.update_and_check(out_simulationstates_buffer[-1])
-            if b_halt_condition_met:
-                self.update_from_system_state(final_system_state)
-                out_simulationstates_buffer[-1] = final_system_state
+            if b_halt_condition_met or self._b_force_stop:
+                _b_force_stop = False
+                if final_system_state is not None:
+                    self.update_from_system_state(final_system_state)
+                    out_simulationstates_buffer[-1] = final_system_state
                 break
 
         return out_simulationstates_buffer, len(out_simulationstates_buffer)
@@ -141,3 +145,6 @@ class SimulationModule(object):
 
     def draw_current_situation(self):
         SystemState.generate_from_simulation_module(self, None).draw_state()
+
+    def fource_stop(self):
+        self._b_force_stop = True

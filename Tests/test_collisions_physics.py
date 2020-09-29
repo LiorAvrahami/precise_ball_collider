@@ -133,15 +133,24 @@ class Test(TestCase):
         conductor.run_simulation()
         self.assert_ball_is_in_bounds(ball1, boundery)
 
-    def test_many_collitions_test_case(self):
+    def test_many_collitions_1d(self):
         boundery = SlipperyBounceBounderyConditions_2D()
-        balls_arr = [Ball((x, 0), (0, 0), 0.06) for x in np.linspace(-1, 1, 3, endpoint=False)[1:]]
-        balls_arr[0].velocity[0] = 1
-        balls_arr[0].radius *= 1
+        balls_arr = [Ball((-0.5, 0), (1.2, 0), 0.1),Ball((0.4, 0), (0.5, 0), 0.1)]
         balls_arr[0].mass *= 10000
         balls_arr[1].color = (1, 0, 0)
         simulation = SimulationModule(boundery_conditions=boundery, balls_arr=balls_arr)
-        conductor = ConductorWithNoOutput(simulation_time_timeout=11, simulation_module=simulation)
+        conductor = ConductorWithNoOutput(simulation_time_timeout=4,simulation_module=simulation)
+        conductor.run_simulation()
+        self.assert_ball_is_in_bounds(balls_arr[0], boundery)
+        self.assert_ball_is_in_bounds(balls_arr[1], boundery)
+
+    def test_many_collitions_corner(self):
+        boundery = SlipperyBounceBounderyConditions_2D()
+        balls_arr = [Ball((0.2/np.sqrt(2) - 0.5,0.2/np.sqrt(2) - 0.5), (1.2, 1.2), 0.1),Ball((0.4,0.4), (0.5, 0.5), 0.1)]
+        balls_arr[0].mass *= 10000
+        balls_arr[1].color = (1, 0, 0)
+        simulation = SimulationModule(boundery_conditions=boundery, balls_arr=balls_arr)
+        conductor = ConductorWithNoOutput(simulation_time_timeout=4,simulation_module=simulation)
         conductor.run_simulation()
         self.assert_ball_is_in_bounds(balls_arr[0], boundery)
         self.assert_ball_is_in_bounds(balls_arr[1], boundery)

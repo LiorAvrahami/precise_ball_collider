@@ -21,6 +21,11 @@ class NeverHalt(SingularHaLTCondition):
         return False, None
 
 
+class HaltImmediately(SingularHaLTCondition):
+    def update_and_check(self, current_system_state: SystemState) -> Tuple[bool, Optional[SystemState]]:
+        return True, self.last_system_state
+
+
 class HaltAtGivenSimulationTime(SingularHaLTCondition):
     target_time: float
 

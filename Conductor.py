@@ -11,15 +11,16 @@ class Conductor(abc.ABC):
     simulation_module: SimulationModule
     log_file_fullname: str
 
-    def __init__(self, simulation_module: SimulationModule, log_file_fullname: str = None):
+    def __init__(self, simulation_module: SimulationModule,b_write_log_data_to_screen:bool, log_file_fullname: str = None):
         self.simulation_module = simulation_module
         self.log_file_fullname = log_file_fullname
+        self.b_write_log_data_to_screen = b_write_log_data_to_screen
 
     def log_txt(self, txt):
-        if self.log_file_fullname is None:
-            print(txt)
-        else:
+        if self.log_file_fullname is not None:
             add_text_to_file(txt, self.log_file_fullname)
+        elif self.b_write_log_data_to_screen:
+            print(txt)
 
     def log_that_run_started(self):
         self.log_txt("run started")
@@ -37,14 +38,17 @@ class Conductor(abc.ABC):
     def run_simulation(self):
         pass
 
+    def force_stop(self):
+        self.simulation_module.fource_stop()
+
 
 class Conductor_That_WritesToFile(Conductor):
     num_of_steps_betwean_file_writings: int
     dataoutput_path: str
     start_of_output_file_names: str
 
-    def __init__(self, simulation_module: SimulationModule, log_file_fullname: str, dataoutput_path: str, num_of_steps_betwean_file_writings: int, start_of_output_file_names: str = None):
-        super().__init__(simulation_module=simulation_module, log_file_fullname=log_file_fullname)
+    def __init__(self, simulation_module: SimulationModule, log_file_fullname: str, dataoutput_path: str, num_of_steps_betwean_file_writings: int, start_of_output_file_names: str = None,b_write_log_data_to_screen=False):
+        super().__init__(simulation_module=simulation_module, log_file_fullname=log_file_fullname,b_write_log_data_to_screen=b_write_log_data_to_screen)
         self.dataoutput_path = dataoutput_path
         self.num_of_steps_betwean_file_writings = num_of_steps_betwean_file_writings
         self.start_of_output_file_names = start_of_output_file_names
@@ -58,8 +62,8 @@ class Conductor_That_WritesToFile(Conductor):
 
 
 class ConductorWithNoOutput(Conductor):
-    def __init__(self, simulation_module: SimulationModule, log_file_fullname: str = None, simulation_time_timeout=None):
-        super().__init__(simulation_module=simulation_module, log_file_fullname=log_file_fullname)
+    def __init__(self, simulation_module: SimulationModule, log_file_fullname: str = None, simulation_time_timeout=None,b_write_log_data_to_screen=False):
+        super().__init__(simulation_module=simulation_module, log_file_fullname=log_file_fullname,b_write_log_data_to_screen=b_write_log_data_to_screen)
         if simulation_time_timeout is not None:
             self.simulation_module.halt_condition = HaltConditions.HaltAtGivenSimulationTime(simulation_time_timeout)
 
@@ -77,8 +81,8 @@ class Conductor_That_PrintsToScreen(Conductor):
     b_is_first_frame: bool
 
     def __init__(self, simulation_module: SimulationModule, log_file_fullname: str = None, target_fps: float = 30.0,
-                 time_calculation_is_ahead_of_animation: float = 10.0, max_num_of_past_system_states: int = 60):
-        super().__init__(simulation_module=simulation_module, log_file_fullname=log_file_fullname)
+                 time_calculation_is_ahead_of_animation: float = 10.0, max_num_of_past_system_states: int = 60,simulation_time_timeout=None,b_write_log_data_to_screen=True):
+        super().__init__(simulation_module=simulation_module, log_file_fullname=log_file_fullname,b_write_log_data_to_screen=b_write_log_data_to_screen)
         self.time_calculation_is_ahead_of_animation = time_calculation_is_ahead_of_animation
         self.target_fps = target_fps
         self.animation_time = 0

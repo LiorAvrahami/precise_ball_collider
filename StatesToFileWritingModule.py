@@ -38,8 +38,8 @@ def system_states_to_data_strings(sys_states: List[SystemState]) -> Dict[str, st
 
 
 def add_text_to_file(text, file_full_name):
-    file = open(file_full_name, "a+")
-    file.write(text)
+    with open(file_full_name, "a+") as file:
+        file.write(text)
 
 
 def add_states_to_files(states: List[SystemState], path: str, start_of_file_names: str):
