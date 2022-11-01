@@ -36,9 +36,9 @@ class SimulationAnimator():
 
         self.max_num_of_past_system_states = max_num_of_past_system_states
         self.write_to_log = write_to_log
-        # missing boundery data TODO
-        self.ax.set_xlim(-1, 1)
-        self.ax.set_ylim(-1, 1)
+        self.boundary_drawer = sim_module.boundery.draw
+        self.ax.set_xlim(*sim_module.boundery.x_limits)
+        self.ax.set_ylim(*sim_module.boundery.y_limits)
         self.ax.set_aspect('equal')
         self.add_system_states_to_interpretation(
             [SystemState.generate_from_balls_array(time=sim_module.time, total_num_of_steps=sim_module.total_num_of_steps, current_objects_in_collision=None, balls=sim_module.balls_arr)])
@@ -86,7 +86,16 @@ class SimulationAnimator():
         self.draw_state_at_time(time_to_print, None, b_plot=False)
         return self.all_artist_objects
 
-    def start_animation(self, frames_generator):
+    def start_animation_on_screen(self, frames_generator):
         fig = self.ax.figure
+        self.boundary_drawer(self.ax)
         anim = animation.FuncAnimation(fig, self.update_animation, frames=frames_generator, interval=0, blit=True)
         plt.show()
+        return anim
+
+    def save_animation_to_file(self, frames_generator, fps, file_name):
+        fig = self.ax.figure
+        self.boundary_drawer(self.ax)
+        anim = animation.FuncAnimation(fig, self.update_animation, frames=frames_generator, blit=True)
+        writervideo = animation.FFMpegWriter(fps=fps)
+        anim.save(file_name, writer=writervideo)

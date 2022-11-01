@@ -12,6 +12,7 @@ class SystemState:
     balls_angle: np.ndarray
     balls_angular_velocity: np.ndarray
     balls_id: np.ndarray
+    balls_colors: list
     total_num_of_steps: int
 
     def propagate_by(self, time):
@@ -79,6 +80,7 @@ class SystemState:
         self.balls_angular_velocity = np.array([ball.angular_vel for ball in balls])
         self.balls_id = np.array([ball.id for ball in balls])
         self.total_num_of_steps = total_num_of_steps
+        self.balls_colors = [ball.color for ball in balls]
         self.balls_radii = [ball.radius for ball in balls]
         return self
 
@@ -86,6 +88,6 @@ class SystemState:
     def generate_from_simulation_module(simulation_module, current_objects_in_collision):
         return SystemState.generate_from_balls_array(simulation_module.time, simulation_module.total_num_of_steps, current_objects_in_collision, simulation_module.balls_arr)
 
-    def draw_state(self):
+    def draw_state(self,boundery_condition=None):
         import DrawingModule
-        DrawingModule.draw_state(self)
+        DrawingModule.draw_state(self,boundery_condition)

@@ -1,6 +1,6 @@
 from Ball import Ball
 import numpy as np
-from BounderyConditions import CyclicBounderyConditions_2D, SlipperyBounceBounderyConditions_2D
+from BounderyConditions import CyclicBounderyConditions_2D, SlipperyBounceBounderyConditions_2D,BounderyConditions
 from typing import Tuple, List, Callable, Union, Generator
 import time as TimeModule
 from BallCollitionCalculatior import calc_collision_time_between_balls, handle_ball_collision
@@ -14,7 +14,7 @@ class SimulationModule(object):
 
     time: float
     total_num_of_steps: int
-    boundery: SlipperyBounceBounderyConditions_2D
+    boundery: BounderyConditions
     balls_arr: List[Ball]
     _halt_condition: HaltCondition
     simulation_propagation_generator: _SimulationPropagationGeneratorType  # creatd by _get_simulation_propagation_generator at initialisation
@@ -34,12 +34,12 @@ class SimulationModule(object):
             self.simulation_propagation_generator = self.get_simulation_propagation_generator()
 
     def __init__(self, balls_arr, boundery_conditions=None, halt_condition=None):
-        self.boundery = SlipperyBounceBounderyConditions_2D() if boundery_conditions is None else boundery_conditions
+        self.boundery = boundery_conditions or SlipperyBounceBounderyConditions_2D()
         self.balls_arr = balls_arr
         self.time = 0
         self.total_num_of_steps = 0
         self.b_end_of_simulation_reached = False
-        self.halt_condition = HaltConditions.NeverHalt() if halt_condition is None else halt_condition  # Must Come After Initialisation Of balls_arr,time,total_num_of_steps
+        self.halt_condition = halt_condition or HaltConditions.NeverHalt()  # Must Come After Initialisation Of balls_arr,time,total_num_of_steps
         self.simulation_propagation_generator = self.get_simulation_propagation_generator()
         self._b_force_stop= False
 
@@ -144,7 +144,7 @@ class SimulationModule(object):
         return first_ball_index / num_of_balls + (second_ball_index - first_ball_index) / ((num_of_balls - first_ball_index + 1) * num_of_balls)
 
     def draw_current_situation(self):
-        SystemState.generate_from_simulation_module(self, None).draw_state()
+        SystemState.generate_from_simulation_module(self, None).draw_state(self.boundery)
 
     def fource_stop(self):
         self._b_force_stop = True

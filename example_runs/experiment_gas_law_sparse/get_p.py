@@ -1,7 +1,7 @@
 from SimulationModule import SimulationModule
 from Ball import Ball
 from BounderyConditions import SlipperyBounceBounderyConditions_2D, CyclicBounderyConditions_2D
-from Conductor import ConductorWithNoOutput,Conductor_That_PrintsToScreen
+from Conductor import ConductorWithNoOutput,Conductor_That_AnimatesOnScreen
 import numpy as np
 import math
 
@@ -51,6 +51,6 @@ def get_p(volume,temperature,number_of_balls,ball_radius,acceptable_relative_unc
     np.random.seed(random_seed)
     balls_arr = [Ball((x, y), get_random_velocity(temperature), ball_radius) for x in ball_1d_locations for y in ball_1d_locations][:number_of_balls]
     simulation = SimulationModule(boundery_conditions=boundery, balls_arr=balls_arr)
-    conductor = Conductor_That_PrintsToScreen(simulation_module=simulation)
+    conductor = ConductorWithNoOutput(simulation_module=simulation)
     conductor.run_simulation()
     return p_avr,p_relative_uncertainty*p_avr

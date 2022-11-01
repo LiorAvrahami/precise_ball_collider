@@ -73,12 +73,14 @@ class ConductorWithNoOutput(Conductor):
         self.log_that_run_ended()
 
 
-class Conductor_That_PrintsToScreen(Conductor):
+class Conductor_That_AnimatesOnScreen(Conductor):
     time_calculation_is_ahead_of_animation: float
     target_fps: float
     animation_time: float
     b_write_to_files: bool
     b_is_first_frame: bool
+
+    animation_object = None
 
     def __init__(self, simulation_module: SimulationModule, log_file_fullname: str = None, target_fps: float = 30.0,
                  time_calculation_is_ahead_of_animation: float = 10.0, max_num_of_past_system_states: int = 60,simulation_time_timeout=None,b_write_log_data_to_screen=True):
@@ -108,6 +110,7 @@ class Conductor_That_PrintsToScreen(Conductor):
                 new_states, num_of_new_states = self.simulation_module.calculate_next_ball_dynamics(simulation_time_timeout=self.animation_time + 0.1)
                 new_system_states.extend(new_states)
                 self.log_txt("emergancy calculation: calculated next {} states in {}".format(num_of_new_states, time() - self.frame_start_time))
+            self.frame_start_time = time()
             yield new_system_states, self.animation_time
             leftover_calculation_start_time = time()
             new_system_states, num_of_new_states = self.simulation_module.calculate_next_ball_dynamics(
@@ -123,5 +126,17 @@ class Conductor_That_PrintsToScreen(Conductor):
         self.log_that_run_ended()
 
     def run_simulation(self):
+        global animation_object
         self.state_drawer = SimulationAnimator(self.simulation_module, max_num_of_past_system_states=self.max_num_of_past_system_states, write_to_log=self.log_txt)
-        self.state_drawer.start_animation(frames_generator=self.get_frames_generator())
+        animation_object = self.state_drawer.start_animation_on_screen(frames_generator=self.get_frames_generator())
+
+class Conductor_That_AnimatesToFile(Conductor_That_AnimatesOnScreen):
+    def __init__(self,simulation_module: SimulationModule,fps,file_name,**kwargs):
+        super(Conductor_That_AnimatesToFile, self).__init__(simulation_module,**kwargs)
+        self.fps = fps
+        self.file_name = file_name
+
+    def run_simulation(self):
+        global animation_object
+        self.state_drawer = SimulationAnimator(self.simulation_module, max_num_of_past_system_states=self.max_num_of_past_system_states, write_to_log=self.log_txt)
+        animation_object = self.state_drawer.save_animation_to_file(frames_generator=self.get_frames_generator(),fps=self.fps,file_name=self.file_name)

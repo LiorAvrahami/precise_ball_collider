@@ -36,6 +36,19 @@ class BounderyConditions(abc.ABC):
         ret = (wall_x - ball_edge_x) / ball_vel_x
         return ret if ret >= 0 else np.inf
 
+    @property
+    @abc.abstractmethod
+    def x_limits(self):
+        pass
+
+    @property
+    @abc.abstractmethod
+    def y_limits(self):
+        pass
+
+    def draw(self,axes):
+        pass
+
 
 class RectangleBoundery_2D(BounderyConditions):
     wall_x_0: float
@@ -71,6 +84,19 @@ class RectangleBoundery_2D(BounderyConditions):
         ret_3 = self._calc_collision_time_with_wall_1d(ball.location[1] - ball.radius, self.wall_y_0, ball.velocity[1]) if ball.velocity[1] < 0 else float("infinity"), self.wall_y_0_key
         ret_4 = self._calc_collision_time_with_wall_1d(ball.location[1] + ball.radius, self.wall_y_1, ball.velocity[1]) if ball.velocity[1] > 0 else float("infinity"), self.wall_y_1_key
         return min(ret_1, ret_2, ret_3, ret_4)
+
+    @property
+    def x_limits(self):
+        return self.wall_x_0,self.wall_x_1
+
+    @property
+    def y_limits(self):
+        return self.wall_y_0,self.wall_y_1
+
+    def draw(self,axes):
+        from matplotlib.patches import Rectangle
+        axes.add_patch(Rectangle((self.wall_x_0,self.wall_y_0), self.wall_x_1-self.wall_x_0, self.wall_y_1-self.wall_y_0,
+                                        alpha=1, facecolor='none',edgecolor="r"))
 
 
 class CyclicBounderyConditions_2D(RectangleBoundery_2D):

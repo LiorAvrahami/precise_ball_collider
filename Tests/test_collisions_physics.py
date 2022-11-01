@@ -3,7 +3,7 @@ from SimulationModule import SimulationModule
 import DrawingModule
 from Ball import Ball
 from BounderyConditions import SlipperyBounceBounderyConditions_2D, CyclicBounderyConditions_2D, RectangleBoundery_2D
-from Conductor import ConductorWithNoOutput, Conductor_That_PrintsToScreen
+from Conductor import ConductorWithNoOutput, Conductor_That_AnimatesOnScreen
 from typing import Union, Tuple
 import HaltConditions
 import numpy as np

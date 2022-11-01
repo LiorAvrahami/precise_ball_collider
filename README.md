@@ -20,4 +20,10 @@ Functionality Includes:
 
 example images:
 -----------------------
-<img src="https://user-images.githubusercontent.com/57775835/83323707-3e608480-a269-11ea-8a97-6fc0c76703d6.PNG" width="300"><img src="https://user-images.githubusercontent.com/57775835/83323709-3f91b180-a269-11ea-8844-7dc0b4f7580f.PNG" width="300">
+<img src="https://user-images.githubusercontent.com/57775835/83323707-3e608480-a269-11ea-8a97-6fc0c76703d6.PNG" width="300">
+</br>
+<img src="https://user-images.githubusercontent.com/57775835/83323709-3f91b180-a269-11ea-8844-7dc0b4f7580f.PNG" width="300">
+</br>
+<img src="https://user-images.githubusercontent.com/57775835/199305046-d9a92c33-0690-478b-9dd4-fc4c3500ecd4.gif" width="300">
+</br>
+<img src="https://user-images.githubusercontent.com/57775835/199307766-a9543d66-5fa6-48de-ad85-07e454e61eae.gif" width="300">
