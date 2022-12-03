@@ -17,6 +17,7 @@ Functionality Includes:
 - output realtime animation
 - input from file (work in progress)
 - output to file (work in progress)
+- 3d simulation (work in progress)
 
 example images:
 -----------------------
