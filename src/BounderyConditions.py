@@ -1,14 +1,13 @@
 import abc
 import numpy as np
-from Ball import Ball
-from typing import Tuple,Callable
-
+from .Ball import Ball
+from typing import Tuple, Callable
 
 
 class BounderyConditions(abc.ABC):
     on_wall_collision_event: Callable
 
-    def __init__(self,on_wall_collision_event:Callable):
+    def __init__(self, on_wall_collision_event: Callable):
         """
         on_wall_collision_event: gets (ball,wall_index)
         """
@@ -27,7 +26,7 @@ class BounderyConditions(abc.ABC):
         :param wall_index: the wall_index of colliding wall, this value is returned from "calc_collision_time_with_walls"
         """
         if callable(self.on_wall_collision_event):
-            self.on_wall_collision_event(ball=ball,wall_index=wall_index)
+            self.on_wall_collision_event(ball=ball, wall_index=wall_index)
 
     @staticmethod
     def _calc_collision_time_with_wall_1d(ball_edge_x, wall_x, ball_vel_x) -> float:
@@ -46,7 +45,7 @@ class BounderyConditions(abc.ABC):
     def y_limits(self):
         pass
 
-    def draw(self,axes):
+    def draw(self, axes):
         pass
 
 
@@ -55,7 +54,6 @@ class RectangleBoundery_2D(BounderyConditions):
     wall_x_1: float
     wall_y_0: float
     wall_y_1: float
-
 
     # static Properties
     wall_x_0_key = "left"
@@ -79,24 +77,28 @@ class RectangleBoundery_2D(BounderyConditions):
         """
         :return: a tuple: (collision time, key of colliding wall) the tuple's contents should be passed in this order to "handle_wall_collision"
         """
-        ret_1 = self._calc_collision_time_with_wall_1d(ball.location[0] - ball.radius, self.wall_x_0, ball.velocity[0]) if ball.velocity[0] < 0 else float("infinity"), self.wall_x_0_key
-        ret_2 = self._calc_collision_time_with_wall_1d(ball.location[0] + ball.radius, self.wall_x_1, ball.velocity[0]) if ball.velocity[0] > 0 else float("infinity"), self.wall_x_1_key
-        ret_3 = self._calc_collision_time_with_wall_1d(ball.location[1] - ball.radius, self.wall_y_0, ball.velocity[1]) if ball.velocity[1] < 0 else float("infinity"), self.wall_y_0_key
-        ret_4 = self._calc_collision_time_with_wall_1d(ball.location[1] + ball.radius, self.wall_y_1, ball.velocity[1]) if ball.velocity[1] > 0 else float("infinity"), self.wall_y_1_key
+        ret_1 = self._calc_collision_time_with_wall_1d(ball.location[0] - ball.radius, self.wall_x_0, ball.velocity[0]) if ball.velocity[0] < 0 else float(
+            "infinity"), self.wall_x_0_key
+        ret_2 = self._calc_collision_time_with_wall_1d(ball.location[0] + ball.radius, self.wall_x_1, ball.velocity[0]) if ball.velocity[0] > 0 else float(
+            "infinity"), self.wall_x_1_key
+        ret_3 = self._calc_collision_time_with_wall_1d(ball.location[1] - ball.radius, self.wall_y_0, ball.velocity[1]) if ball.velocity[1] < 0 else float(
+            "infinity"), self.wall_y_0_key
+        ret_4 = self._calc_collision_time_with_wall_1d(ball.location[1] + ball.radius, self.wall_y_1, ball.velocity[1]) if ball.velocity[1] > 0 else float(
+            "infinity"), self.wall_y_1_key
         return min(ret_1, ret_2, ret_3, ret_4)
 
     @property
     def x_limits(self):
-        return self.wall_x_0,self.wall_x_1
+        return self.wall_x_0, self.wall_x_1
 
     @property
     def y_limits(self):
-        return self.wall_y_0,self.wall_y_1
+        return self.wall_y_0, self.wall_y_1
 
-    def draw(self,axes):
+    def draw(self, axes):
         from matplotlib.patches import Rectangle
-        axes.add_patch(Rectangle((self.wall_x_0,self.wall_y_0), self.wall_x_1-self.wall_x_0, self.wall_y_1-self.wall_y_0,
-                                        alpha=1, facecolor='none',edgecolor="r"))
+        axes.add_patch(Rectangle((self.wall_x_0, self.wall_y_0), self.wall_x_1 - self.wall_x_0, self.wall_y_1 - self.wall_y_0,
+                                 alpha=1, facecolor='none', edgecolor="r"))
 
 
 class CyclicBounderyConditions_2D(RectangleBoundery_2D):

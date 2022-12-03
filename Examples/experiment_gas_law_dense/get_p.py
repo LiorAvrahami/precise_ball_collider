@@ -1,7 +1,7 @@
 from SimulationModule import SimulationModule
 from Ball import Ball
 from BounderyConditions import SlipperyBounceBounderyConditions_2D, CyclicBounderyConditions_2D
-from Conductor import ConductorWithNoOutput,Conductor_That_AnimatesOnScreen
+from Conductor import ConductorWithNoOutput,ConductorThatAnimatesOnScreen
 import numpy as np
 import math
 

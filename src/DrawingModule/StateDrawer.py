@@ -1,10 +1,10 @@
 import matplotlib.pyplot as plt
-from SystemState import SystemState
-from BounderyConditions import BounderyConditions
+from ..SystemState import SystemState
+from ..BounderyConditions import BounderyConditions
 from typing import List, Tuple, Callable
 import numpy as np
-from Ball import Ball
-from SimulationModule import SimulationModule
+from ..Ball import Ball
+from ..SimulationModule import SimulationModule
 
 
 def draw_state(system_state: SystemState,boundery_condition:BounderyConditions=None, velocity_arrow_scale=10):

@@ -1,11 +1,11 @@
 from unittest import TestCase
-from SimulationModule import SimulationModule
-import DrawingModule
-from Ball import Ball
-from BounderyConditions import SlipperyBounceBounderyConditions_2D, CyclicBounderyConditions_2D, RectangleBoundery_2D
-from Conductor import ConductorWithNoOutput, Conductor_That_AnimatesOnScreen
+from src.SimulationModule import SimulationModule
+import src.DrawingModule
+from src.Ball import Ball
+from src.BounderyConditions import SlipperyBounceBounderyConditions_2D, CyclicBounderyConditions_2D, RectangleBoundery_2D
+from src.Conductor import ConductorWithNoOutput, ConductorThatAnimatesOnScreen
 from typing import Union, Tuple
-import HaltConditions
+import src.HaltConditions
 import numpy as np
 import matplotlib.pyplot as plt
 

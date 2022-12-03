@@ -1,5 +1,5 @@
 import abc
-from SystemState import SystemState
+from ..SystemState import SystemState
 from typing import Tuple, Optional
 
 

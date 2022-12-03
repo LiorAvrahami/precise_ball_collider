@@ -1,8 +1,8 @@
-from SimulationModule import SimulationModule
-import DrawingModule
-from Ball import Ball
-from BounderyConditions import SlipperyBounceBounderyConditions_2D, CyclicBounderyConditions_2D
-from Conductor import Conductor_That_AnimatesOnScreen
+from src.SimulationModule import SimulationModule
+import src.DrawingModule
+from src.Ball import Ball
+from src.BounderyConditions import SlipperyBounceBounderyConditions_2D, CyclicBounderyConditions_2D
+from src.Conductor import ConductorThatAnimatesOnScreen
 import numpy as np
 
 boundery = SlipperyBounceBounderyConditions_2D()
@@ -12,5 +12,5 @@ balls_arr[1].velocity[0] = 1
 balls_arr[1].color = (1,0,0)
 simulation = SimulationModule(boundery_conditions=boundery, balls_arr=balls_arr)
 
-conductor = Conductor_That_AnimatesOnScreen(simulation_module=simulation, target_fps=30)
+conductor = ConductorThatAnimatesOnScreen(simulation_module=simulation, target_fps=30)
 conductor.run_simulation()

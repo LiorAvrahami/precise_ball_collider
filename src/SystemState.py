@@ -1,6 +1,6 @@
 import numpy as np
 from typing import List, Optional
-from Ball import Ball
+from .Ball import Ball
 
 
 class SystemState:

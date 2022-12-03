@@ -1,13 +1,12 @@
-from Ball import Ball
+from .Ball import Ball
 import numpy as np
-from BounderyConditions import CyclicBounderyConditions_2D, SlipperyBounceBounderyConditions_2D,BounderyConditions
+from .BounderyConditions import CyclicBounderyConditions_2D, SlipperyBounceBounderyConditions_2D,BounderyConditions
 from typing import Tuple, List, Callable, Union, Generator
 import time as TimeModule
-from BallCollitionCalculatior import calc_collision_time_between_balls, handle_ball_collision
-from SystemState import SystemState
-from HaltConditions import HaltCondition
-import HaltConditions
-
+from .BallCollitionCalculatior import calc_collision_time_between_balls, handle_ball_collision
+from .SystemState import SystemState
+from .HaltConditions import HaltCondition
+from src import HaltConditions
 
 class SimulationModule(object):
     _SimulationPropagationGeneratorType = Generator[Tuple[List[SystemState], float], Callable[[None], bool], Tuple[List[SystemState], float]]

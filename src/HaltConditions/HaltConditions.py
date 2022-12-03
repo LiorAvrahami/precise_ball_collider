@@ -1,5 +1,5 @@
 from .HaltConditionComposition import HaltCondition, Or_OfTwoHaltConditions
-from SystemState import SystemState
+from ..SystemState import SystemState
 from typing import Tuple, Optional
 import numpy as np
 from time import time as get_cur_time_in_seconds

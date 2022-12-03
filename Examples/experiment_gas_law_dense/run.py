@@ -1,7 +1,7 @@
 import numpy as np
-from example_runs.experiment_gas_law_sparse.get_p import get_p
+from Examples.experiment_gas_law_sparse.get_p import get_p
 import matplotlib.pyplot as plt
-from example_runs.experiment_gas_law_sparse.plot_adaptive import adaptive_sample
+from Examples.experiment_gas_law_sparse.plot_adaptive import adaptive_sample
 
 SE = 0.5 ###
 number_of_points_on_graph = 20 ###

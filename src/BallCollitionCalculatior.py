@@ -1,4 +1,4 @@
-from Ball import Ball
+from .Ball import Ball
 import numpy as np
 
 

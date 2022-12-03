@@ -1,13 +1,12 @@
 import numpy as np
 from typing import Tuple, Optional
 
-
 class Ball(object):
-    mass: np.float
-    radius: np.float
+    mass: float
+    radius: float
     location: np.ndarray
     velocity: np.ndarray
-    color: Tuple[np.float, np.float, np.float]
+    color: Tuple[float, float, float]
     angle: Optional[float]
     angular_vel: Optional[float]
     id: int
