@@ -15,8 +15,10 @@ Functionality Includes:
 - inelastic colitions (work in progress)
 - rotational colitions (work in progress)
 - output realtime animation
+- output animation to file
 - input from file (work in progress)
 - output to file (work in progress)
+- 3d simulation (work in progress)
 
 example images:
 -----------------------
