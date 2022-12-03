@@ -81,18 +81,17 @@ class ConductorWithNoOutput(Conductor):
         self.simulation_module.calculate_next_ball_dynamics()
         self.log_that_run_ended()
 
-
 class ConductorThatAnimatesOnScreen(Conductor):
     max_time_calculation_is_ahead_of_animation: float
     simulation_animator: SimulationAnimator
     b_write_to_files: bool
 
     def __init__(self, simulation_module: SimulationModule, log_file_fullname: str = None, target_fps: float = 30.0,
-                 time_calculation_is_ahead_of_animation: float = 10.0, max_num_of_past_system_states: int = 60, simulation_time_timeout=None,
+                 max_time_calculation_is_ahead_of_animation: float = 10.0, max_num_of_past_system_states: int = 60, simulation_time_timeout=None,
                  b_write_log_data_to_screen=True):
         super().__init__(simulation_module=simulation_module, log_file_fullname=log_file_fullname,
                          b_write_log_data_to_screen=b_write_log_data_to_screen)
-        self.time_calculation_is_ahead_of_animation = time_calculation_is_ahead_of_animation
+        self.max_time_calculation_is_ahead_of_animation = max_time_calculation_is_ahead_of_animation
         self.target_fps = target_fps
         self.animation_time = 0
         self.max_num_of_past_system_states = max_num_of_past_system_states
@@ -106,7 +105,7 @@ class ConductorThatAnimatesOnScreen(Conductor):
         while not self.simulation_module.b_end_of_simulation_reached:
             start_time_of_bulk = time()
             new_system_states, num_of_new_states = self.simulation_module.calculate_next_ball_dynamics(
-                simulation_time_timeout=self.simulation_animator.animation_time + self.time_calculation_is_ahead_of_animation,
+                simulation_time_timeout=self.simulation_animator.animation_time + self.max_time_calculation_is_ahead_of_animation,
                 user_time_timeout__sec=1 / self.target_fps)
             calculation_time_of_bulk = time() - start_time_of_bulk
             self.log_txt(f"calculated next {num_of_new_states} states in {calculation_time_of_bulk}\n\n")
@@ -128,80 +127,6 @@ class ConductorThatAnimatesOnScreen(Conductor):
                                                       write_to_log_func=self.log_txt)
         self.run_simulation_module_on_other_thread()
         self.animation_object = self.simulation_animator.start_animation_on_screen()
-
-
-class ConductorThatAnimatesOnScreen__OLD(Conductor):
-    time_calculation_is_ahead_of_animation: float
-    target_fps: float
-    animation_time: float
-    b_write_to_files: bool
-    b_is_first_frame: bool
-
-    animation_object = None
-
-    def __init__(self, simulation_module: SimulationModule, log_file_fullname: str = None, target_fps: float = 30.0,
-                 time_calculation_is_ahead_of_animation: float = 10.0, max_num_of_past_system_states: int = 60, simulation_time_timeout=None,
-                 b_write_log_data_to_screen=True):
-        super().__init__(simulation_module=simulation_module, log_file_fullname=log_file_fullname,
-                         b_write_log_data_to_screen=b_write_log_data_to_screen)
-        self.time_calculation_is_ahead_of_animation = time_calculation_is_ahead_of_animation
-        self.target_fps = target_fps
-        self.animation_time = 0
-        self.max_num_of_past_system_states = max_num_of_past_system_states
-        self.b_is_first_frame = True
-
-    def get_frames_generator(self) -> Generator[List[FrameUpdate], None, None]:
-        # Todo: improve function readability
-
-        self.log_that_run_started()
-        anim_start_time = time()
-
-        # calculate first few seconds of animation in order to overcome initial lag
-        self.log_txt("calculating the first few collisions")
-        new_system_states, num_of_new_states = self.simulation_module.calculate_next_ball_dynamics(
-            simulation_time_timeout=self.animation_time + self.time_calculation_is_ahead_of_animation)
-        self.log_txt("initial calculation: calculated first {} states in {}".format(
-            num_of_new_states, time() - anim_start_time))
-        yield new_system_states, self.animation_time
-        new_system_states = []
-
-        while not self.simulation_module.b_end_of_simulation_reached:
-            # keep track of when this frame calculation started:
-            frame_start_time = time()
-
-            # if animation time overtook simulation time then we must lag the simulation and preform some "emergency calculations"
-            if self.animation_time > self.simulation_module.time:
-                new_states, num_of_new_states = self.simulation_module.calculate_next_ball_dynamics(
-                    simulation_time_timeout=self.animation_time + 0.1)
-                new_system_states.extend(new_states)
-                self.log_txt("emergancy calculation: calculated next {} states in {}".format(
-                    num_of_new_states, time() - frame_start_time))
-                # reset frame start time so we don't take the time to do the emergency calculations into account
-                frame_start_time = time()
-
-            yield new_system_states, self.animation_time
-            leftover_calculation_start_time = time()
-            new_system_states, num_of_new_states = self.simulation_module.calculate_next_ball_dynamics(
-                simulation_time_timeout=self.animation_time + self.time_calculation_is_ahead_of_animation,
-                user_time_timeout__sec=1 / self.target_fps - (time() - frame_start_time))
-            leftover_calculation_time = time() - leftover_calculation_start_time
-            if 1 / self.target_fps - (time() - frame_start_time) > 0:
-                sleep(1 / self.target_fps - (time() - frame_start_time))
-            cycle_time = time() - frame_start_time
-            self.animation_time += cycle_time
-            if cycle_time != 0:
-                self.log_txt("fps {}, frame_time {}".format(
-                    str(1 / cycle_time), cycle_time))
-            self.log_txt("leftover_time calculation: calculated next {} states in {}\n\n".format(
-                num_of_new_states, leftover_calculation_time))
-        self.log_that_run_ended()
-
-    def run_simulation(self):
-        global animation_object
-        self.state_drawer = SimulationAnimator(self.simulation_module, max_num_of_past_system_states=self.max_num_of_past_system_states,
-                                               write_to_log=self.log_txt)
-        animation_object = self.state_drawer.start_animation_on_screen(
-            frames_generator=self.get_frames_generator())
 
 
 class ConductorThatAnimatesToFile(ConductorThatAnimatesOnScreen):

@@ -108,11 +108,13 @@ class SimulationAnimator:
                 last_frame_time_interval = (time() - self.last_frame_start_time)
                 self.last_frame_start_time = time()
                 self.print_load_status_to_log(last_frame_time_interval)
+            else:
+                self.write_to_log_func("------------- LAG -------------")
         return self.all_artist_objects
 
     def print_load_status_to_log(self, last_frame_time_interval):
         self.write_to_log_func(f"fps = {1 / last_frame_time_interval:.1f}, "
-                               f"slowing_factor = {last_frame_time_interval / self.target_fps:.1f}")
+                               f"slowing_factor = {last_frame_time_interval * self.target_fps:.3g}")
 
     def start_animation_on_screen(self):
         fig = self.ax.figure
