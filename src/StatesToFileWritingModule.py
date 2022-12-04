@@ -1,49 +1,60 @@
+import os
+
+import numpy as np
+import json
 from .SystemState import SystemState
 from typing import List, Dict
 
 
-def get_row_of_certin_data_type(sys_state: SystemState, data_type_key: str) -> str:
-    if data_type_key == location_data_key:
-        return str(sys_state.balls_location)[1: -1]
-    elif data_type_key == velocity_data_key:
-        return str(sys_state.balls_velocity)[1: -1]
-    elif data_type_key == angle_data_key:
-        return str(sys_state.balls_angle)[1: -1]
-    elif data_type_key == angular_vel_data_key:
-        return str(sys_state.balls_angular_velocity)[1: -1]
-    elif data_type_key == collision_disc_data_key:
-        return sys_state.get_collision_description()
+def add_plane_states_to_file(states: List[SystemState], path: str, write_to_log_func):
+    text = "\n"
+    for s in states:
+        text += "State:\n"
+        text += f"time:{s.time}\n"
+        text += "locations:\n"
+        for loc in s.balls_location:
+            text += f"({loc[0]},{loc[1]})\n"
+        for vel in s.balls_velocity:
+            text += f"({vel[0]},{vel[1]})\n"
+
+    path_new = path + "temp"
+    with open(path_new, mode="a+") as f:
+        f.write(text)
+    write_to_log_func(f"wrote to {path_new}")
 
 
-location_data_key = "location"
-velocity_data_key = "velocity"
-angle_data_key = "angle"
-angular_vel_data_key = "angular_vel"
-collision_disc_data_key = "collision_disc"
-data_keys = [location_data_key, velocity_data_key, angle_data_key, angular_vel_data_key, collision_disc_data_key]
+def add_location_interpolation_map_to_file(states: List[SystemState], path: str, write_to_log_func):
+    if len(states) == 0:
+        return
+    np_arrays_dict = add_system_states_to_interpretation(states)
+    path_new = find_empty_file_name(path,"npz")
+    if not os.path.exists(os.path.dirname(path_new)):
+        os.mkdir(os.path.dirname(path_new))
+    np.savez(path_new, **np_arrays_dict)
+    write_to_log_func(f"wrote to {path_new}")
 
 
-def system_states_to_data_strings(sys_states: List[SystemState]) -> Dict[str, str]:
-    data_text_library = {}
-    for cur_state in sys_states:
-        for data_type_key in data_keys:
-            row_text = ""
-            # add new line
-            if data_text_library[data_type_key] != "":
-                row_text = '\n'
-            # convert system_state data to row
-            row_text += get_row_of_certin_data_type(sys_state=cur_state, data_type_key=data_type_key)
-            data_text_library[data_type_key] += row_text
-    return data_text_library
+def add_system_states_to_interpretation(system_states: List[SystemState]) -> Dict[str, np.ndarray]:
+    if len(system_states) == 0:
+        raise ValueError()
+    num_of_balls = len(system_states[0].balls_radii)
+    times_for_interp = np.full(len(system_states), np.nan)
+    balls_locations_for_interp_x = np.full((len(system_states), num_of_balls), np.nan)
+    balls_locations_for_interp_y = np.full((len(system_states), num_of_balls), np.nan)
+    for i in range(len(system_states)):
+        times_for_interp[i] = system_states[i].time
+        for ball_index in range(len(system_states[i].balls_location)):
+            balls_locations_for_interp_x[i, ball_index] = system_states[i].balls_location[ball_index][0]
+            balls_locations_for_interp_y[i, ball_index] = system_states[i].balls_location[ball_index][1]
+    return {"times_for_interp": times_for_interp,
+            "balls_locations_for_interp_x": balls_locations_for_interp_x,
+            "balls_locations_for_interp_y": balls_locations_for_interp_y}
 
 
-def add_text_to_file(text, file_full_name):
-    with open(file_full_name, "a+") as file:
-        file.write(text)
-
-
-def add_states_to_files(states: List[SystemState], path: str, start_of_file_names: str):
-    dictionary_of_rows = system_states_to_data_strings(states)
-    for data_type_key in dictionary_of_rows.keys():
-        text = dictionary_of_rows[data_type_key]
-        add_text_to_file(text, path + start_of_file_names + data_type_key)
+def find_empty_file_name(path,extention):
+    i = 0
+    while True:
+        new_path = path + str(i) + "." + extention
+        if not os.path.exists(new_path):
+            return new_path
+        i += 1

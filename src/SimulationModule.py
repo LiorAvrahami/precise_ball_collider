@@ -7,6 +7,7 @@ from .BallCollitionCalculatior import calc_collision_time_between_balls, handle_
 from .SystemState import SystemState
 from .HaltConditions import HaltCondition
 from src import HaltConditions
+import pickle
 
 class SimulationModule(object):
     _SimulationPropagationGeneratorType = Generator[Tuple[List[SystemState], float], Callable[[None], bool], Tuple[List[SystemState], float]]
@@ -145,5 +146,25 @@ class SimulationModule(object):
     def draw_current_situation(self):
         SystemState.generate_from_simulation_module(self, None).draw_state(self.boundery)
 
-    def fource_stop(self):
+    def force_stop(self):
         self._b_force_stop = True
+
+    def save_to_pickle(self,path_without_suffix):
+        path = path_without_suffix + "_Simulation_Definition"
+        new_sim = SimulationModule(self.balls_arr, self.boundery, self.halt_condition)
+        new_sim.time = self.time
+        new_sim.total_num_of_steps = self.total_num_of_steps
+        new_sim.b_end_of_simulation_reached = self.b_end_of_simulation_reached
+        new_sim.simulation_propagation_generator = None
+        del new_sim.simulation_propagation_generator
+
+        with open(path,"wb+") as f:
+            pickle.dump(new_sim,f)
+
+    @staticmethod
+    def load_from_pickle(path_without_suffix):
+        path = path_without_suffix + "_Simulation_Definition"
+        with open(path, "rb") as f:
+            new_sim = pickle.load(f)
+        return new_sim
+
