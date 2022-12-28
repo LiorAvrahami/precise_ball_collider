@@ -11,9 +11,11 @@ from ..SimulationModule import SimulationModule
 from matplotlib import animation
 from time import time, sleep
 import os
+
 FrameUpdate = List[plt.Artist]
 
 PAUSE_TIME_BEFORE_ANIMATION_SECONDS = 1.2
+
 
 class SimulationAnimator:
     balls_locations_for_interp_x: List[List[float]]
@@ -147,7 +149,8 @@ class SimulationAnimator:
         fps_mult_factor = self.get_fps_multiplication_factor()
         fig = self.ax.figure
         self.boundary_drawer(self.ax)
-        anim = animation.FuncAnimation(fig, self.update_animation,init_func=self.draw_first_frame_and_pause, interval=1000 / (self.target_fps * fps_mult_factor), blit=True)
+        anim = animation.FuncAnimation(fig, self.update_animation, init_func=self.draw_first_frame_and_pause,
+                                       interval=1000 / (self.target_fps * fps_mult_factor), blit=True)
         plt.show()
         return anim
 
@@ -203,17 +206,25 @@ class ToFileSimulationAnimationSaver(SimulationAnimator):
         super().__init__(sim_module, target_fps, max_num_of_past_system_states, write_to_log_func)
         self.cv = threading.Condition()
         self.write_eta_to_log_func = write_eta_to_log_func
+        self.last_saved_frame = -1
 
     def get_fps_multiplication_factor(self):
         return 1
 
     def update_animation(self, frame):
+        # for some really wierd reason, matplotlib might give us the same frame several times in a row,
+        # It's our job to be consistent and return the same image each time.
+        if frame == self.last_saved_frame:
+            return self.all_artist_objects
+        assert frame == self.last_saved_frame + 1
+        self.last_saved_frame = frame
+
         with self.cv:
             self.animation_time += 1 / self.target_fps
             # wait for simulation to overtake animation
             while self.animation_time >= self.times_for_interp[-1]:
                 self.cv.wait()
-            self.write_to_log_func(f" animation time is {self.animation_time:.4g}")
+            self.write_to_log_func(f"animation time is {self.animation_time:.4g}, frame num is {frame}")
             self.handle_clearing_of_past_system_states(self.animation_time)
             self.draw_state_at_time(self.animation_time)
         return self.all_artist_objects
@@ -232,10 +243,11 @@ class ToFileSimulationAnimationSaver(SimulationAnimator):
         num_frames = int(self.target_fps * length_seconds)
         fig = self.ax.figure
         self.boundary_drawer(self.ax)
+        # self.final_animation_time = self.animation_time + length_seconds
         anim = animation.FuncAnimation(fig, self.update_animation, frames=num_frames, blit=True)
         writervideo = animation.FFMpegWriter(fps=self.target_fps)
-        anim.save(file_name, writer=writervideo,progress_callback=self.update_eta)
+        anim.save(file_name, writer=writervideo, progress_callback=self.update_eta)
         return anim
 
-    def update_eta(self,current_frame: int, total_frames: int):
-        self.write_eta_to_log_func(total_frames,current_frame,time() - self.time_started)
+    def update_eta(self, current_frame: int, total_frames: int):
+        self.write_eta_to_log_func(total_frames, current_frame, time() - self.time_started)
