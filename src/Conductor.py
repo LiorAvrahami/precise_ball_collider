@@ -8,8 +8,9 @@ from .SimulationModule import SimulationModule
 from src import HaltConditions
 from . import StatesToFileWritingModule
 from time import time, sleep
+import datetime
 from typing import List, Generator
-from .DrawingModule.simulation_animator import SimulationAnimator, FrameUpdate
+from .DrawingModule.simulation_animator import SimulationAnimator, FrameUpdate, ToFileSimulationAnimationSaver
 
 
 class Conductor(abc.ABC):
@@ -41,6 +42,26 @@ class Conductor(abc.ABC):
     def log_that_Error_occured(self, error_object: Exception):
         self.log_txt("error occured\\nerror type: " +
                      str(type(error_object)) + "\\nerror messege" + str(error_object))
+
+    def log_eta(self, total_work, work_done, time_elapsed):
+        if work_done == 0:
+            self.log_txt(f"estimated time left is: unknown\neta is: unknown")
+            return
+        work_completion_rate = work_done / time_elapsed
+        work_left = total_work - work_done
+        time_left = datetime.timedelta(seconds=(work_left / work_completion_rate))
+        eta = datetime.datetime.now() + time_left
+        if eta.day == datetime.datetime.now().day:
+            # if current day then don't write complete date
+            eta_str = eta.strftime("%H:%M:%S")
+        else:
+            # if different day then write complete date
+            eta_str = eta.strftime("%d/%m/%Y %H:%M:%S")
+        if time_left.total_seconds() < 60:
+            time_left_str = f"{int(time_left.total_seconds())} seconds"
+        else:
+            time_left_str = str(time_left).split(".")[0]
+        self.log_txt(f"estimated time left is: {time_left_str}\neta is: {eta_str}")
 
     @abc.abstractmethod
     def run_simulation(self):
@@ -93,6 +114,28 @@ class ConductorWithNoOutput(Conductor):
         self.log_that_run_ended()
 
 
+class ConductorWithProgressBar(Conductor):
+    origional_halt_condition : HaltConditions
+
+    def __init__(self, simulation_module: SimulationModule, simulation_time_timeout=None):
+        super().__init__(simulation_module=simulation_module, log_file_fullname=None)
+        self.simulation_time_timeout = simulation_time_timeout
+        if simulation_time_timeout is not None:
+            self.origional_halt_condition = self.simulation_module.halt_condition
+            self.simulation_module.halt_condition = self.simulation_module.halt_condition.add_halt_condition(
+                HaltConditions.HaltAtGivenSimulationTime(simulation_time_timeout))
+
+    def run_simulation(self):
+        start_time = time()
+        self.log_that_run_started()
+        while not self.simulation_module.b_end_of_simulation_reached:
+            self.simulation_module.calculate_next_ball_dynamics(user_time_timeout__sec=10)
+            if not self.simulation_module.b_end_of_simulation_reached:
+                self.log_eta(total_work=self.simulation_time_timeout, work_done=self.simulation_module.time, time_elapsed=time() - start_time)
+        self.log_that_run_ended()
+        self.simulation_module.halt_condition = self.origional_halt_condition
+
+
 class ConductorThatAnimatesOnScreen(Conductor):
     max_time_calculation_is_ahead_of_animation: float
     simulation_animator: SimulationAnimator
@@ -139,18 +182,26 @@ class ConductorThatAnimatesOnScreen(Conductor):
 
 
 class ConductorThatAnimatesToFile(ConductorThatAnimatesOnScreen):
-    def __init__(self, simulation_module: SimulationModule, fps, file_name, **kwargs):
+    origional_halt_condition: HaltConditions
+
+    def __init__(self, simulation_module: SimulationModule, target_fps, length_seconds, file_name, b_halt_simulation_when_animation_ends=True, **kwargs):
         super(ConductorThatAnimatesToFile, self).__init__(
             simulation_module, **kwargs)
-        self.fps = fps
+        self.fps = target_fps
         self.file_name = file_name
+        self.length_seconds = length_seconds
+        self.origional_halt_condition = self.simulation_module.halt_condition
+        if b_halt_simulation_when_animation_ends:
+            self.simulation_module.halt_condition = self.simulation_module.halt_condition.add_halt_condition(HaltConditions.HaltAtGivenSimulationTime(
+                length_seconds + self.simulation_module.time))
 
     def run_simulation(self):
-        global animation_object
-        self.state_drawer = SimulationAnimator(self.simulation_module, max_num_of_past_system_states=self.max_num_of_past_system_states,
-                                               write_to_log=self.log_txt)
-        animation_object = self.state_drawer.save_animation_to_file(
-            frames_generator=self.get_frames_generator(), fps=self.fps, file_name=self.file_name)
+        self.simulation_animator = ToFileSimulationAnimationSaver(self.simulation_module, target_fps=self.target_fps,
+                                                                  max_num_of_past_system_states=self.max_num_of_past_system_states,
+                                                                  write_to_log_func=self.log_txt, write_eta_to_log_func=self.log_eta)
+        self.run_simulation_module_on_other_thread()
+        self.animation_object = self.simulation_animator.save_animation_to_file(file_name=self.file_name, length_seconds=self.length_seconds)
+        self.simulation_module.halt_condition = self.origional_halt_condition
 
 
 class MultiProcessConductorThatAnimatesOnScreen(Conductor):

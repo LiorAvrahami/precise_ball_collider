@@ -17,10 +17,10 @@ class HaltCondition(abc.ABC):
         """
         pass
 
-    def __and__(self, other):
+    def intersect_with_halt_condition(self, other):
         return And_OfTwoHaltConditions(self, other)
 
-    def __or__(self, other):
+    def add_halt_condition(self, other):
         return Or_OfTwoHaltConditions(self, other)
 
 
