@@ -11,9 +11,9 @@ from ..SimulationModule import SimulationModule
 from matplotlib import animation
 from time import time, sleep
 import os
-
 FrameUpdate = List[plt.Artist]
 
+PAUSE_TIME_BEFORE_ANIMATION_SECONDS = 1.2
 
 class SimulationAnimator:
     balls_locations_for_interp_x: List[List[float]]
@@ -105,8 +105,9 @@ class SimulationAnimator:
         self.time_text_artist.set_text("time: " + "{:0.3g}".format(animation_time))
 
     def update_animation(self, frame):
-
         last_partial_frame_time_interval = (time() - self.last_partial_frame_start_time)
+        if last_partial_frame_time_interval < 0:
+            return self.all_artist_objects
         self.last_partial_frame_start_time = time()
 
         # check if animation should change lagging state
@@ -131,6 +132,11 @@ class SimulationAnimator:
             self.do_idle_work(idle_time=1 / self.target_fps - last_partial_frame_time_interval)
         return self.all_artist_objects
 
+    def draw_first_frame_and_pause(self):
+        self.draw_state_at_time(0)
+        self.last_partial_frame_start_time = time() + PAUSE_TIME_BEFORE_ANIMATION_SECONDS
+        return self.all_artist_objects
+
     def print_load_status_to_log(self, last_frame_time_interval):
         self.write_to_log_func(f"fps = {1 / last_frame_time_interval:.1f}")
 
@@ -141,7 +147,7 @@ class SimulationAnimator:
         fps_mult_factor = self.get_fps_multiplication_factor()
         fig = self.ax.figure
         self.boundary_drawer(self.ax)
-        anim = animation.FuncAnimation(fig, self.update_animation, interval=1000 / (self.target_fps * fps_mult_factor), blit=True)
+        anim = animation.FuncAnimation(fig, self.update_animation,init_func=self.draw_first_frame_and_pause, interval=1000 / (self.target_fps * fps_mult_factor), blit=True)
         plt.show()
         return anim
 
