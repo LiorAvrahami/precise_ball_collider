@@ -2,10 +2,11 @@ from unittest import TestCase
 from src.SimulationModule import SimulationModule
 import src.DrawingModule
 from src.Ball import Ball
-from src.BounderyConditions import SlipperyBounceBounderyConditions_2D, CyclicBounderyConditions_2D, RectangleBoundery_2D
+from src.BounderyConditions import SlipperyBounceBounderyConditions_2D, CyclicBounderyConditions_2D, \
+    RectangleBoundery_2D
 from src.Conductor import ConductorWithNoOutput, ConductorThatAnimatesOnScreen
 from typing import Union, Tuple
-import src.HaltConditions
+from src.HaltConditions import *
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -21,7 +22,9 @@ class Test(TestCase):
             self.fail("ball not in bounds: ball location = {},boundery = {}".format(ball.location, bounds))
 
     def assert_ball_not_in_bounds(self, ball, bounds: Union[RectangleBoundery_2D, Tuple]):
-        with self.assertRaises(AssertionError, msg="ball is in unexpected area: ball location = {},boundery = {}".format(ball.location, bounds)):
+        with self.assertRaises(AssertionError,
+                               msg="ball is in unexpected area: ball location = {},boundery = {}".format(ball.location,
+                                                                                                         bounds)):
             self.assert_ball_is_in_bounds(ball, bounds)
 
     def assert_ball_is_in_position(self, ball, pos, error=0.0001):
@@ -32,10 +35,25 @@ class Test(TestCase):
         bounds = (pos[0] - error, pos[0] + error, pos[1] - error, pos[1] + error)
         self.assert_ball_not_in_bounds(ball, bounds)
 
+    def assert_all_balls_in_bounds(self,balls_arr, bounds: Union[RectangleBoundery_2D, Tuple]):
+        for ball in balls_arr:
+            self.assert_ball_is_in_bounds(ball,bounds)
+
+    def assert_no_balls_intersect(self,balls_arr, max_error=0.000001):
+        for b1_index,b1 in enumerate(balls_arr):
+            for b2_index,b2 in enumerate(balls_arr):
+                if b1 == b2:
+                    continue
+                distance = np.sum((b1.location-b2.location)**2)**0.5
+                if distance < b1.radius + b2.radius - max_error:
+                    self.fail(f"balls {b1_index}, and {b2_index} intersected")
+
+
     def test_collide_with_wall(self):
         boundery = SlipperyBounceBounderyConditions_2D()
         ball1 = Ball((0, 0), (1, 0), 0.1)
-        simulation = SimulationModule(boundery_conditions=boundery, balls_arr=[ball1], halt_condition=HaltConditions.HaltAtGivenSimulationTime(1.8))
+        simulation = SimulationModule(boundery_conditions=boundery, balls_arr=[ball1],
+                                      halt_condition=HaltConditions.HaltAtGivenSimulationTime(1.8))
         conductor = ConductorWithNoOutput(simulation_module=simulation)
         conductor.run_simulation()
         self.assert_ball_is_in_position(ball1, (0, 0))
@@ -43,7 +61,8 @@ class Test(TestCase):
     def test_multiple_halt_conditions_1(self):
         boundery = SlipperyBounceBounderyConditions_2D()
         ball1 = Ball((0, 0), (1, 0), 0.1)
-        halt_condition = HaltConditions.HaltAtGivenSimulationTime(0.4) | HaltConditions.HaltAtBallExitsRectangle((-1, -1), (0.5, 1))
+        halt_condition = HaltConditions.HaltAtGivenSimulationTime(0.4) | HaltConditions.HaltAtBallExitsRectangle(
+            (-1, -1), (0.5, 1))
         simulation = SimulationModule(boundery_conditions=boundery, balls_arr=[ball1], halt_condition=halt_condition)
         conductor = ConductorWithNoOutput(simulation_module=simulation)
         conductor.run_simulation()
@@ -52,7 +71,8 @@ class Test(TestCase):
     def test_multiple_halt_conditions_2(self):
         boundery = SlipperyBounceBounderyConditions_2D()
         ball1 = Ball((0, 0), (1, 0), 0.1)
-        halt_condition = HaltConditions.HaltAtGivenSimulationTime(0.4) | HaltConditions.HaltAtBallExitsRectangle((-1, -1), (0.3, 1))
+        halt_condition = HaltConditions.HaltAtGivenSimulationTime(0.4) | HaltConditions.HaltAtBallExitsRectangle(
+            (-1, -1), (0.3, 1))
         simulation = SimulationModule(boundery_conditions=boundery, balls_arr=[ball1], halt_condition=halt_condition)
         conductor = ConductorWithNoOutput(simulation_module=simulation)
         conductor.run_simulation()
@@ -74,7 +94,8 @@ class Test(TestCase):
         ball3 = Ball((0.5, 0.2), (0, -1), 0.1)
         ball4 = Ball((0.5, -0.2), (0, 1), 0.1)
         start_positions = np.array([ball1.location, ball2.location, ball3.location, ball4.location])
-        simulation1 = SimulationModule(boundery_conditions=boundery, balls_arr=[ball1, ball2, ball3, ball4], halt_condition=HaltConditions.HaltAtGivenSimulationTime(0.2))
+        simulation1 = SimulationModule(boundery_conditions=boundery, balls_arr=[ball1, ball2, ball3, ball4],
+                                       halt_condition=HaltConditions.HaltAtGivenSimulationTime(0.2))
 
         simulation1.calculate_next_ball_dynamics()
         self.assert_ball_is_in_position(ball1, start_positions[0])
@@ -98,7 +119,8 @@ class Test(TestCase):
         ball3 = Ball((0.5 + epsilon, 0.2 + epsilon), (0, -1), 0.1)
         ball4 = Ball((0.5 + epsilon, -0.2 + epsilon), (0, 1 + epsilon), 0.1)
         start_positions = np.array([ball1.location, ball2.location, ball3.location, ball4.location])
-        simulation = SimulationModule(boundery_conditions=boundery, balls_arr=[ball1, ball2, ball3, ball4], halt_condition=HaltConditions.HaltAtGivenSimulationTime(0.2))
+        simulation = SimulationModule(boundery_conditions=boundery, balls_arr=[ball1, ball2, ball3, ball4],
+                                      halt_condition=HaltConditions.HaltAtGivenSimulationTime(0.2))
 
         simulation.calculate_next_ball_dynamics()
         simulation.draw_current_situation()
@@ -135,25 +157,40 @@ class Test(TestCase):
 
     def test_many_collitions_1d(self):
         boundery = SlipperyBounceBounderyConditions_2D()
-        balls_arr = [Ball((-0.5, 0), (1.2, 0), 0.1),Ball((0.4, 0), (0.5, 0), 0.1)]
+        balls_arr = [Ball((-0.5, 0), (1.2, 0), 0.1), Ball((0.4, 0), (0.5, 0), 0.1)]
         balls_arr[0].mass *= 10000
         balls_arr[1].color = (1, 0, 0)
         simulation = SimulationModule(boundery_conditions=boundery, balls_arr=balls_arr)
-        conductor = ConductorWithNoOutput(simulation_time_timeout=4,simulation_module=simulation)
+        conductor = ConductorWithNoOutput(simulation_time_timeout=4, simulation_module=simulation)
         conductor.run_simulation()
         self.assert_ball_is_in_bounds(balls_arr[0], boundery)
         self.assert_ball_is_in_bounds(balls_arr[1], boundery)
 
-    def test_many_collitions_corner(self):
+    def test_many_collisions_corner(self):
         boundery = SlipperyBounceBounderyConditions_2D()
-        balls_arr = [Ball((0.2/np.sqrt(2) - 0.5,0.2/np.sqrt(2) - 0.5), (1.2, 1.2), 0.1),Ball((0.4,0.4), (0.5, 0.5), 0.1)]
+        balls_arr = [Ball((0.2 / np.sqrt(2) - 0.5, 0.2 / np.sqrt(2) - 0.5), (1.2, 1.2), 0.1),
+                     Ball((0.4, 0.4), (0.5, 0.5), 0.1)]
         balls_arr[0].mass *= 10000
         balls_arr[1].color = (1, 0, 0)
         simulation = SimulationModule(boundery_conditions=boundery, balls_arr=balls_arr)
-        conductor = ConductorWithNoOutput(simulation_time_timeout=4,simulation_module=simulation)
+        conductor = ConductorWithNoOutput(simulation_time_timeout=4, simulation_module=simulation)
         conductor.run_simulation()
         self.assert_ball_is_in_bounds(balls_arr[0], boundery)
         self.assert_ball_is_in_bounds(balls_arr[1], boundery)
 
+    def test_simultaneous_collisions_many_balls(self):
+        boundery = SlipperyBounceBounderyConditions_2D()
+        sqrt_of_num_of_balls = 6
 
-
+        radius = 1 / (2 * sqrt_of_num_of_balls)
+        balls_arr = []
+        for x in np.linspace(-1, 1, sqrt_of_num_of_balls + 1, endpoint=False)[1:]:
+            for y in np.linspace(-1, 1, sqrt_of_num_of_balls + 1, endpoint=False)[1:]:
+                balls_arr.append(Ball((x, y), (0.5, 0), radius=radius, mass=1))
+        balls_arr[0].color = (0.8, 0.2, 0.2)
+        balls_arr[0].velocity[1] = 0.001
+        simulation = SimulationModule(boundery_conditions=boundery, balls_arr=balls_arr)
+        for i in range(50):
+            simulation.calculate_next_ball_dynamics(simulation_steps_timeout=1)
+            self.assert_all_balls_in_bounds(balls_arr,boundery)
+            self.assert_no_balls_intersect(balls_arr,max_error=0.000001)
