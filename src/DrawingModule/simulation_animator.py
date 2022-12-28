@@ -218,10 +218,10 @@ class ToFileSimulationAnimationSaver(SimulationAnimator):
     def update_animation(self, frame):
         with self.cv:
             self.animation_time = (frame / (self.num_frames - 1)) * (self.final_animation_time - self.start_animation_time) + self.start_animation_time
-            # wait for simulation to overtake animation
-            while self.animation_time >= self.times_for_interp[-1]:
-                self.cv.wait()
             self.write_to_log_func(f"animation time is {self.animation_time:.4g}, frame num is {frame}")
+            # wait for simulation to overtake animation
+            while self.animation_time > self.times_for_interp[-1]:
+                self.cv.wait()
             self.handle_clearing_of_past_system_states(self.animation_time)
             self.draw_state_at_time(self.animation_time)
         return self.all_artist_objects
@@ -246,4 +246,5 @@ class ToFileSimulationAnimationSaver(SimulationAnimator):
         return anim
 
     def update_eta(self, current_frame: int, total_frames: int):
-        self.write_eta_to_log_func(total_frames, current_frame, time() - self.time_started)
+        self.write_eta_to_log_func(self.final_animation_time - self.start_animation_time, self.times_for_interp[-1] - self.start_animation_time,
+                                   time() - self.time_started)
