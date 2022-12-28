@@ -202,25 +202,22 @@ class ToFileSimulationAnimationSaver(SimulationAnimator):
     cv: threading.Condition
     time_started: float
 
-    def __init__(self, sim_module: SimulationModule, target_fps, max_num_of_past_system_states: int, write_to_log_func, write_eta_to_log_func):
+    def __init__(self, sim_module: SimulationModule, target_fps, anim_length_seconds, max_num_of_past_system_states: int, write_to_log_func,
+                 write_eta_to_log_func):
         super().__init__(sim_module, target_fps, max_num_of_past_system_states, write_to_log_func)
         self.cv = threading.Condition()
         self.write_eta_to_log_func = write_eta_to_log_func
         self.last_saved_frame = -1
+        self.start_animation_time = self.animation_time
+        self.final_animation_time = self.animation_time + anim_length_seconds
+        self.num_frames = int(self.target_fps * anim_length_seconds)
 
     def get_fps_multiplication_factor(self):
         return 1
 
     def update_animation(self, frame):
-        # for some really wierd reason, matplotlib might give us the same frame several times in a row,
-        # It's our job to be consistent and return the same image each time.
-        if frame == self.last_saved_frame:
-            return self.all_artist_objects
-        assert frame == self.last_saved_frame + 1
-        self.last_saved_frame = frame
-
         with self.cv:
-            self.animation_time += 1 / self.target_fps
+            self.animation_time = (frame / (self.num_frames - 1)) * (self.final_animation_time - self.start_animation_time) + self.start_animation_time
             # wait for simulation to overtake animation
             while self.animation_time >= self.times_for_interp[-1]:
                 self.cv.wait()
@@ -238,13 +235,12 @@ class ToFileSimulationAnimationSaver(SimulationAnimator):
             self.add_system_states_to_interpolation(system_states)
             self.cv.notify()
 
-    def save_animation_to_file(self, file_name, length_seconds):
+    def save_animation_to_file(self, file_name):
         self.time_started = time()
-        num_frames = int(self.target_fps * length_seconds)
         fig = self.ax.figure
         self.boundary_drawer(self.ax)
-        # self.final_animation_time = self.animation_time + length_seconds
-        anim = animation.FuncAnimation(fig, self.update_animation, frames=num_frames, blit=True)
+
+        anim = animation.FuncAnimation(fig, self.update_animation, frames=self.num_frames, blit=True)
         writervideo = animation.FFMpegWriter(fps=self.target_fps)
         anim.save(file_name, writer=writervideo, progress_callback=self.update_eta)
         return anim

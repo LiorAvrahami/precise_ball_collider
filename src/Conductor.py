@@ -115,7 +115,7 @@ class ConductorWithNoOutput(Conductor):
 
 
 class ConductorWithProgressBar(Conductor):
-    origional_halt_condition : HaltConditions
+    origional_halt_condition: HaltConditions
 
     def __init__(self, simulation_module: SimulationModule, simulation_time_timeout=None):
         super().__init__(simulation_module=simulation_module, log_file_fullname=None)
@@ -196,11 +196,11 @@ class ConductorThatAnimatesToFile(ConductorThatAnimatesOnScreen):
                 length_seconds + self.simulation_module.time))
 
     def run_simulation(self):
-        self.simulation_animator = ToFileSimulationAnimationSaver(self.simulation_module, target_fps=self.target_fps,
+        self.simulation_animator = ToFileSimulationAnimationSaver(self.simulation_module, target_fps=self.target_fps, anim_length_seconds=self.length_seconds,
                                                                   max_num_of_past_system_states=self.max_num_of_past_system_states,
                                                                   write_to_log_func=self.log_txt, write_eta_to_log_func=self.log_eta)
         self.run_simulation_module_on_other_thread()
-        self.animation_object = self.simulation_animator.save_animation_to_file(file_name=self.file_name, length_seconds=self.length_seconds)
+        self.animation_object = self.simulation_animator.save_animation_to_file(file_name=self.file_name)
         self.simulation_module.halt_condition = self.origional_halt_condition
 
 
@@ -230,7 +230,8 @@ class MultiProcessConductorThatAnimatesOnScreen(Conductor):
         self.simulation_module.save_to_pickle(self.temp_files_path_names)
 
         # for windows cmd:
-        command_text = f"START python -m src.DrawingModule.run_simulation_animator_from_files \"{self.temp_files_path_names}\" {self.target_fps} {self.max_num_of_past_system_states}"
+        command_text = f"START python -m src.DrawingModule.run_simulation_animator_from_files \"{self.temp_files_path_names}\" {self.target_fps} " \
+                       f"{self.max_num_of_past_system_states}"
         print("command is: ", command_text)
         os.system(command_text)
 
