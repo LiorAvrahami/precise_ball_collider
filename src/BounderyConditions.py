@@ -29,11 +29,16 @@ class BounderyConditions(abc.ABC):
             self.on_wall_collision_event(ball=ball, wall_index=wall_index)
 
     @staticmethod
-    def _calc_collision_time_with_wall_1d(ball_edge_x, wall_x, ball_vel_x) -> float:
+    def _calc_collision_time_with_wall_1d(ball_edge_x, wall_x, ball_vel_x, wall_direction) -> float:
         if ball_vel_x == 0:
             return np.inf
         ret = (wall_x - ball_edge_x) / ball_vel_x
-        return ret if ret >= 0 else np.inf
+        if ret <= 0:
+            if ball_vel_x*wall_direction > 0:
+                ret = 0
+            else:
+                ret = np.inf
+        return ret
 
     @property
     @abc.abstractmethod
@@ -77,13 +82,13 @@ class RectangleBoundery_2D(BounderyConditions):
         """
         :return: a tuple: (collision time, key of colliding wall) the tuple's contents should be passed in this order to "handle_wall_collision"
         """
-        ret_1 = self._calc_collision_time_with_wall_1d(ball.location[0] - ball.radius, self.wall_x_0, ball.velocity[0]) if ball.velocity[0] < 0 else float(
+        ret_1 = self._calc_collision_time_with_wall_1d(ball.location[0] - ball.radius, self.wall_x_0, ball.velocity[0],wall_direction = -1) if ball.velocity[0] < 0 else float(
             "infinity"), self.wall_x_0_key
-        ret_2 = self._calc_collision_time_with_wall_1d(ball.location[0] + ball.radius, self.wall_x_1, ball.velocity[0]) if ball.velocity[0] > 0 else float(
+        ret_2 = self._calc_collision_time_with_wall_1d(ball.location[0] + ball.radius, self.wall_x_1, ball.velocity[0],wall_direction = 1) if ball.velocity[0] > 0 else float(
             "infinity"), self.wall_x_1_key
-        ret_3 = self._calc_collision_time_with_wall_1d(ball.location[1] - ball.radius, self.wall_y_0, ball.velocity[1]) if ball.velocity[1] < 0 else float(
+        ret_3 = self._calc_collision_time_with_wall_1d(ball.location[1] - ball.radius, self.wall_y_0, ball.velocity[1],wall_direction = -1) if ball.velocity[1] < 0 else float(
             "infinity"), self.wall_y_0_key
-        ret_4 = self._calc_collision_time_with_wall_1d(ball.location[1] + ball.radius, self.wall_y_1, ball.velocity[1]) if ball.velocity[1] > 0 else float(
+        ret_4 = self._calc_collision_time_with_wall_1d(ball.location[1] + ball.radius, self.wall_y_1, ball.velocity[1],wall_direction = 1) if ball.velocity[1] > 0 else float(
             "infinity"), self.wall_y_1_key
         return min(ret_1, ret_2, ret_3, ret_4)
 
